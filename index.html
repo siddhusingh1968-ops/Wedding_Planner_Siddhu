@@ -277,16 +277,22 @@ async function decryptShared(obj){
  const tries=[PC.code,(LS.get('pcpending',null)||{}).old].filter(Boolean);
  for(const c of tries){try{const k=await deriveKey(c,obj.salt);return new TextDecoder().decode(await decBytes(k,b64bytes(obj.data)))}catch(e){}}
  const err=new Error(PC.code?'The family passcode has been changed. Enter the new passcode.':'This shared planner is protected. Enter the family passcode.');err.needPass=true;throw err}
-let lockMode=null,started=false;
+let lockMode=null,started=false,pendingJoin=null;
 function showLock(mode,msg){lockMode=mode;$('#lock').classList.add('show');$('#lockMsg').textContent=msg||'Enter the family passcode to open the planner.';
  $('#lockTitle').textContent=(S&&S.settings.names)||'Wedding Planner';$('#lockErr').textContent='';$('#lockCode').value='';$('#lockRem').checked=!!LS.get('pcode',null);setTimeout(()=>$('#lockCode').focus(),50)}
 async function tryUnlock(){
  const code=$('#lockCode').value;if(!code)return;const btn=$('#lockGo');btn.disabled=true;btn.textContent='Checking…';$('#lockErr').textContent='';
  try{
-  if(lockMode==='local'){if(!(await verifyLocal(code))){$('#lockErr').textContent='That passcode is not right.';return}}
+  if(lockMode==='join'){const j=pendingJoin;let tok;
+   try{tok=new TextDecoder().decode(await decBytes(await deriveKey(code,j.salt),b64bytes(j.tok)))}catch(e){$('#lockErr').textContent='That passcode is not right.';return}
+   ['owner','repo','branch','path','rdir'].forEach(k=>{if(j[k]!=null)GH[k]=String(j[k])});GH.token=tok;LS.set('gh',GH);
+   const prev=PC.code;PC.code=code;
+   try{await pull()}catch(e){PC.code=prev;$('#lockErr').textContent=e.needPass?'Passcode opened the invite, but the shared data uses a different passcode now. Ask for a new invite link.':e.message;return}
+   await makeCheck(code);pendingJoin=null;repoOk=false}
+  else if(lockMode==='local'){if(!(await verifyLocal(code))){$('#lockErr').textContent='That passcode is not right.';return}}
   else{const prev=PC.code;PC.code=code;try{await pull()}catch(e){PC.code=prev;$('#lockErr').textContent=e.needPass?'That passcode is not right.':e.message;return}await makeCheck(code)}
   PC.code=code;storeCode(code,$('#lockRem').checked);$('#lock').classList.remove('show');const m=lockMode;lockMode=null;
-  if(!started)start();else{render();if(m==='sync')sync()}
+  if(!started)start();else{render();if(m==='sync'||m==='join')sync()}
  }finally{btn.disabled=false;btn.textContent='Unlock'}}
 $('#lockGo').addEventListener('click',tryUnlock);
 $('#lockCode').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock()});
@@ -750,8 +756,9 @@ function rSet(){
    <button class="btn pri" data-act="ghConnect">${ghReady()?'Save & sync now':'Connect & sync'}</button>
    ${ghReady()?`<button class="btn" data-act="syncNow">⟳ Sync now</button><button class="btn danger" data-act="ghDisconnect">Disconnect this device</button>`:''}
    <span class="spacer"></span>
-   <button class="btn" data-act="ghLink" title="Copies a link with the repository settings (not the token) for family members">🔗 Copy setup link for family</button>
+   ${ghReady()&&LS.get('pclock',null)?`<button class="btn pri" data-act="ghInvite" title="One link + the passcode is all family needs">✉️ Copy family invite link</button>`:`<button class="btn" data-act="ghLink" title="Copies a link with the repository settings (not the token) for family members">🔗 Copy setup link for family</button>`}
   </div>
+  ${ghReady()&&LS.get('pclock',null)?`<p class="small muted" style="margin:8px 0 0">✉️ <b>Easiest way to add family:</b> send them the invite link, and the passcode separately. They open the link, type the passcode, and they're connected — no GitHub account or token needed. (The link carries your access token, locked with the passcode.)</p>`:`<p class="small muted" style="margin:8px 0 0">Tip: once a family passcode is set, this becomes a one-step <b>invite link</b> — family only need the link and the passcode.</p>`}
   <details style="margin-top:10px"><summary class="small" style="cursor:pointer;color:var(--accent)"><b>How to set it up (one time, about 5 minutes)</b></summary>
    <ol class="steps">
     <li><b>Create a separate <u>private</u> repository</b> for the data, e.g. <code>wedding-data</code> (GitHub → New repository → Private). Keep the planner page itself in your public GitHub Pages repository — <b>don't put the data in a public repository</b>, or anyone could read receipts and payments.</li>
@@ -1034,6 +1041,15 @@ function act(a,el){const id=el&&el.dataset.id;
  case 'ghLink':{readGhForm();if(!GH.owner||!GH.repo){alert('Fill in the owner and repository first.');return}
   const cfg={owner:GH.owner,repo:GH.repo,branch:GH.branch,path:GH.path,rdir:GH.rdir};const url=location.href.split('#')[0]+'#sync='+encodeURIComponent(JSON.stringify(cfg));
   (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>alert('Setup link copied. Send it to family — they open it, paste their access token, and click Connect.\n\nThe link does NOT include your token.'),()=>prompt('Copy this setup link:',url));break}
+ case 'ghInvite':{readGhForm();
+  if(!ghReady()||lastErr){alert('Connect Shared sync successfully first.');return}
+  if(!PC.code||!LS.get('pclock',null)){alert('Set a family passcode first — the invite link is locked with it.');return}
+  (async()=>{const salt=newSalt(),k=await deriveKey(PC.code,salt);
+   const tok=b64encBytes(await encBytes(k,new TextEncoder().encode(GH.token)));
+   const cfg={owner:GH.owner,repo:GH.repo,branch:GH.branch,path:GH.path,rdir:GH.rdir,salt,tok};
+   const url=location.href.split('#')[0]+'#join='+encodeURIComponent(JSON.stringify(cfg));
+   const msg='Family invite link copied!\n\nSend it to family, and send the passcode separately (text or in person). They open the link, type the passcode, and they\'re in — no GitHub account or token needed.\n\nThe link is useless without the passcode. If you change the passcode, make a new invite link.';
+   (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>alert(msg),()=>prompt('Copy this invite link:',url))})();break}
  }}
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;
  if(el.tagName==='A')e.preventDefault();
@@ -1057,6 +1073,9 @@ document.addEventListener('drop',e=>{e.preventDefault();document.querySelectorAl
  if(location.hash.startsWith('#sync=')){try{const cfg=JSON.parse(decodeURIComponent(location.hash.slice(6)));['owner','repo','branch','path','rdir'].forEach(k=>{if(cfg[k])GH[k]=String(cfg[k])});LS.set('gh',GH);tab='settings'}catch(e){}
   history.replaceState(null,'',location.pathname+location.search)}
  loadCode();
+ if(location.hash.startsWith('#join=')){try{pendingJoin=JSON.parse(decodeURIComponent(location.hash.slice(6)))}catch(e){}
+  history.replaceState(null,'',location.pathname+location.search);
+  if(pendingJoin&&pendingJoin.tok){if(!hasCrypto()){alert('Please open this invite link in Chrome, Edge or Safari.');}else{tab='dashboard';showLock('join','You\'ve been invited to the family wedding planner. Enter the family passcode to join.');$('#lockRem').checked=true;return}}}
  if(LS.get('pclock',null)&&!(PC.code&&await verifyLocal(PC.code))){PC.code=null;showLock('local');return}
  start();
 })();
