@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wedding Planner &amp; Tracker</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--ink:#2b2024;--muted:#7a6a70;--line:#ece3da;--accent:#8c1c3a;--accent2:#b8862b;
+--ok:#2e7d32;--okbg:#e6f4e8;--pend:#a35c00;--pendbg:#fff1dc;--bad:#b3261e;--badbg:#fde8e6;--radius:12px}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header.top{background:linear-gradient(135deg,#6e1229,#a8324f 60%,#b8862b);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;margin:0;font-size:26px;letter-spacing:.3px}
+.sub{opacity:.88;font-size:13px}
+.countdown{margin-left:auto;text-align:right}
+.countdown b{font-family:Georgia,serif;font-size:32px;display:block;line-height:1}
+.top .btn{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.35)}
+nav{display:flex;gap:2px;padding:0 16px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;overflow-x:auto;align-items:center}
+nav button.tabb{border:0;background:none;padding:14px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.tabb:hover{color:var(--ink)}
+nav button.tabb.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.ind{font-size:12px;color:var(--muted);white-space:nowrap;padding-left:12px}
+#saveInd{margin-left:auto}
+#syncInd{cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin-left:8px;background:#fff}
+#syncInd.err{color:var(--bad);border-color:#f0c4c0;background:var(--badbg)}
+#syncInd.ok{color:var(--ok);border-color:#b7dcbe}
+#bakBar{display:none;background:#fff4dd;border-bottom:1px solid #f1dfbf;padding:8px 20px;font-size:13px;align-items:center;gap:10px;flex-wrap:wrap}
+#bakBar.show{display:flex}
+main{max-width:1320px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(60,30,30,.04)}
+h2{font-family:Georgia,serif;font-weight:400;font-size:21px;margin:0 0 12px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 10px;font-weight:600}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))}
+.two{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.stat{margin:0}
+.stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stat .val{font-size:22px;font-weight:650;margin-top:4px}
+.stat .hint{font-size:12px;color:var(--muted);margin-top:2px}
+.stat.okc{border-top:4px solid var(--ok)} .stat.pendc{border-top:4px solid #e09a2b} .stat.acc{border-top:4px solid var(--accent)} .stat.gold{border-top:4px solid var(--accent2)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+tfoot td{font-weight:650;border-bottom:0;padding-top:10px}
+.num{text-align:right;white-space:nowrap}
+.tw{overflow-x:auto}
+input,select,textarea{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #efd2da;border-color:var(--accent)}
+input[type=checkbox]{width:auto}
+td input,td select{border-color:transparent;background:transparent}
+td input:hover,td select:hover{border-color:#ddd0c4;background:#fff}
+td input:focus{background:#fff}
+input[type=number]{text-align:right}
+tr.ok{background:var(--okbg)} tr.pend{background:var(--pendbg)} tr.bad{background:#f4f1f1;color:#8a8a8a}
+tr.ok>td:first-child{box-shadow:inset 4px 0 0 var(--ok)} tr.pend>td:first-child{box-shadow:inset 4px 0 0 #e09a2b} tr.bad>td:first-child{box-shadow:inset 4px 0 0 #bbb}
+tr.ok .tdone input.ttl{text-decoration:line-through;text-decoration-color:rgba(46,125,50,.5)}
+select.s-ok{background:#cdeacf!important;color:var(--ok);font-weight:650;border-color:#b2d9b8!important}
+select.s-pend{background:#ffe0b0!important;color:var(--pend);font-weight:650;border-color:#f1c886!important}
+select.s-bad{background:#eee!important;color:#777;font-weight:600}
+select.s-na{color:#999}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap}
+.pill.ok{background:#cdeacf;color:var(--ok)} .pill.pend{background:#ffe0b0;color:var(--pend)} .pill.bad{background:var(--badbg);color:var(--bad)} .pill.na{background:#eee;color:#777}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit;white-space:nowrap;width:auto;text-decoration:none;display:inline-block}
+.btn:hover{border-color:#cdb9a8}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)} .btn.pri:hover{background:#74142f}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:#f5ede6}
+.btn.danger{color:var(--bad)}
+.drop{border:2px dashed #d9c3b0;border-radius:12px;padding:16px;text-align:center;color:var(--muted);cursor:pointer;background:#fffcf8;transition:.15s;display:flex;align-items:center;justify-content:center;gap:12px;min-height:110px}
+.drop.over,.mini-drop.over{border-color:var(--accent);background:#fbeef1;color:var(--accent)}
+.drop.has{border-style:solid;border-color:#9fd0a6;background:var(--okbg);color:var(--ok)}
+.drop img{max-height:90px;max-width:120px;border-radius:6px;border:1px solid var(--line)}
+.drop .big{font-size:28px}
+.thumb{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;display:block;background:#fff}
+.mini-drop{width:44px;height:44px;border:1.5px dashed #d9c3b0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#c4a993;cursor:pointer;background:#fff}
+.mini-drop.file{border-style:solid;border-color:var(--line);font-size:22px;cursor:zoom-in}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.exform{display:grid;grid-template-columns:260px 1fr;gap:16px}
+@media(max-width:800px){.exform{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
+label.ck{display:flex;gap:8px;align-items:center;cursor:pointer}
+.bar{height:8px;background:#f0e7df;border-radius:99px;overflow:hidden;min-width:80px}
+.bar>i{display:block;height:100%;background:var(--accent2);border-radius:99px}
+.bar>i.ok{background:var(--ok)} .bar>i.over{background:var(--bad)}
+.event{border-left:6px solid #e09a2b;padding-top:12px}
+.event.done{border-left-color:var(--ok)}
+.event.empty-ev{border-left-color:#d9cfc6}
+.ehead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ehead .ename{font-family:Georgia,serif;font-size:21px;border:1px solid transparent;padding:2px 6px;width:190px;background:transparent}
+.ehead .ename:hover{border-color:var(--line)}
+.ehead input[type=date]{width:150px} .ehead .venue{width:200px}
+.ehead .prog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);min-width:170px}
+.spacer{flex:1}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar>input,.toolbar>select{width:auto}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 9px;cursor:pointer;background:#fff;margin:1px;color:var(--muted);font:inherit;font-size:11px}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pchip{display:inline-flex;align-items:center;gap:6px;background:#f6eee6;border-radius:999px;padding:4px 6px 4px 12px;margin:3px}
+.pchip button{border:0;background:#e8d9cc;border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:1}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:12px}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+.overdue{color:var(--bad)!important;font-weight:650}
+.legend{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.hc{display:flex;gap:8px;flex-wrap:wrap}
+.hc .box{background:#fbf6f1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:110px}
+.hc .box b{font-size:18px;display:block}
+.list-up li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.list-up{list-style:none;margin:0;padding:0}
+.note{background:#fff8ec;border:1px solid #f1dfbf;border-radius:10px;padding:10px 14px;font-size:13px}
+.note.ok{background:var(--okbg);border-color:#b7dcbe}
+.note.err{background:var(--badbg);border-color:#f0c4c0}
+ol.steps{margin:6px 0 0;padding-left:20px;font-size:13px} ol.steps li{margin:4px 0}
+code{background:#f3ebe4;border-radius:4px;padding:1px 5px;font-size:12px}
+.modal-bg{position:fixed;inset:0;background:rgba(30,10,15,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:95vw;max-height:94vh;display:flex;flex-direction:column;overflow:hidden}
+.modal header{padding:10px 14px;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line)}
+.modal .body{overflow:auto;padding:10px;display:flex;justify-content:center;background:#f4f0ec}
+.modal img{max-width:90vw;max-height:80vh}
+.modal iframe{width:85vw;height:80vh;border:0;background:#fff}
+.pdfopts{padding:16px 20px;overflow:auto;width:min(640px,92vw);display:block}
+.pdfopts .opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.pdfopts .opt .sub2{margin:8px 0 0 26px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:13px}
+.pdfopts .opt .sub2 select{width:auto}
+#lock{position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,#6e1229,#a8324f 60%,#b8862b);display:none;align-items:center;justify-content:center;padding:20px}
+#lock.show{display:flex}
+#lock .lk{background:#fff;border-radius:16px;padding:28px 30px;width:min(400px,94vw);box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center}
+#lock .lk h2{margin:6px 0 4px} #lock .lk p{color:var(--muted);font-size:13px;margin:0 0 16px}
+#lock input[type=password]{font-size:18px;text-align:center;letter-spacing:3px;padding:10px}
+#lock .lerr{color:var(--bad);font-size:13px;min-height:18px;margin:8px 0}
+#lockBtn{margin-left:6px}
+/* ---- printable report ---- */
+#report{display:none}
+@media print{
+  @page{margin:12mm}
+  body.rep{background:#fff}
+  body.rep>*:not(#report){display:none!important}
+  body.rep #report{display:block}
+  body:not(.rep) nav, body:not(.rep) .noprint, body:not(.rep) .btn, body:not(.rep) #bakBar{display:none!important}
+  body:not(.rep) td input, body:not(.rep) td select{border:0!important;appearance:none;-webkit-appearance:none}
+}
+#report{font:11px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#222}
+#report *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#report .rh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #8c1c3a;padding-bottom:6px;margin-bottom:10px}
+#report .rt{font-family:Georgia,serif;font-size:22px;color:#8c1c3a}
+#report .rs{color:#666;font-size:11px}
+#report .sec{break-before:page} #report .sec.first{break-before:auto}
+#report h2{font-family:Georgia,serif;font-size:17px;margin:4px 0 8px;color:#8c1c3a;font-weight:400}
+#report h3{font-size:13px;margin:14px 0 4px;text-transform:none;letter-spacing:0;color:#222;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+#report h3 small{font-weight:400;color:#666;font-size:11px}
+#report table{border-collapse:collapse;width:100%;margin-bottom:8px}
+#report thead{display:table-header-group}
+#report th{background:#f3ebe4;color:#444;font-size:9.5px;border:1px solid #ddd;padding:4px 5px;text-transform:uppercase;letter-spacing:.3px}
+#report td{border:1px solid #ddd;padding:4px 5px;font-size:10.5px;vertical-align:top}
+#report tr{break-inside:avoid}
+#report tr.ok td{background:#e6f4e8} #report tr.pend td{background:#fff4e3} #report tr.bad td{background:#f2f2f2;color:#888}
+#report tfoot td{font-weight:700;background:#faf6f1}
+#report .tag{font-weight:700;font-size:9.5px;padding:1px 6px;border-radius:8px;white-space:nowrap}
+#report .tag.ok{background:#cdeacf;color:#2e7d32} #report .tag.pend{background:#ffe0b0;color:#a35c00} #report .tag.na{color:#999}
+#report .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+#report .kpis div{border:1px solid #e3d8ce;border-radius:6px;padding:6px 8px}
+#report .kpis b{display:block;font-size:15px}
+#report .kpis span{font-size:9.5px;color:#666;text-transform:uppercase;letter-spacing:.4px}
+#report .rcpt{break-before:page;text-align:center}
+#report .rcpt img{max-width:100%;max-height:235mm;border:1px solid #ddd}
+#report .rcpt p{margin:0 0 8px;font-size:12px}
+#report .box{font-size:13px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1 id="hdrNames">Our Wedding</h1>
+    <div class="sub" id="hdrSub">Planner &amp; expense tracker</div>
+  </div>
+  <div class="countdown" id="hdrCount"></div>
+  <button class="btn sm noprint" data-act="pdf" data-preset="summary">📄 PDF / Print</button>
+</header>
+<nav id="nav">
+  <button class="tabb" data-act="tab" data-tab="dashboard">Dashboard</button>
+  <button class="tabb" data-act="tab" data-tab="expenses">Expenses &amp; Receipts</button>
+  <button class="tabb" data-act="tab" data-tab="checklist">Event Checklist</button>
+  <button class="tabb" data-act="tab" data-tab="vendors">Vendors</button>
+  <button class="tabb" data-act="tab" data-tab="guests">Guests &amp; RSVP</button>
+  <button class="tabb" data-act="tab" data-tab="settings">Settings, Sharing &amp; Backup</button>
+  <span id="saveInd" class="ind"></span>
+  <span id="syncInd" class="ind" data-act="syncNow" style="display:none"></span>
+  <button id="lockBtn" class="btn sm ghost" data-act="lockNow" title="Lock the planner" style="display:none">🔒 Lock</button>
+</nav>
+<div id="bakBar"></div>
+<main id="view"><div class="empty">Loading…</div></main>
+<datalist id="peopleList"></datalist>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <header><b id="mTitle"></b><span class="spacer"></span><a class="btn sm" id="mDl" download>Download</a><button class="btn sm" data-act="closeModal">Close ✕</button></header>
+    <div class="body" id="mBody"></div>
+  </div>
+</div>
+<div class="modal-bg" id="pdfModal">
+  <div class="modal">
+    <header><b>Create PDF / Print</b><span class="spacer"></span><button class="btn sm" data-act="closePdf">Close ✕</button></header>
+    <div class="pdfopts" id="pdfBody"></div>
+  </div>
+</div>
+<div id="report"></div>
+<div id="lock"><div class="lk">
+  <div style="font-size:34px">🔒</div>
+  <h2 id="lockTitle">Wedding Planner</h2>
+  <p id="lockMsg">Enter the family passcode to open the planner.</p>
+  <input type="password" id="lockCode" placeholder="Passcode" autocomplete="current-password">
+  <label class="ck small" style="justify-content:center;margin-top:10px;color:var(--muted)"><input type="checkbox" id="lockRem"> Remember on this device</label>
+  <div class="lerr" id="lockErr"></div>
+  <button class="btn pri" id="lockGo" style="width:100%;padding:10px">Unlock</button>
+  <div style="margin-top:14px"><a href="#" class="small" id="lockForgot">Forgot passcode?</a></div>
+</div></div>
+
+<script>
+/* ================= constants ================= */
+const DEFAULT_EVENTS=['Mehndi','Maiyan','Churra','Batna','Jago','Wedding','Reception'];
+const DEFAULT_CATS=['Venue','Catering & Sweets','Décor & Flowers','Attire & Jewelry','Photography & Video','DJ / Dhol / Entertainment','Makeup, Hair & Mehndi Artist','Invitations & Stationery','Gifts, Shagun & Favors','Transportation','Accommodation','Ceremony Items','Miscellaneous'];
+const METHODS=['','Cash','Check','Zelle','Credit Card','Other'];
+const SUGGESTED={
+ Mehndi:['Book mehndi artist','Finalize bride\'s mehndi design','Order mehndi cones for guests','Seating, cushions & décor','Dhol / music & giddha','Snacks, chai & drinks','Outfits for mehndi'],
+ Maiyan:['Prepare maiyan paste ingredients','Arrange chowki & phulkari / cloth','Old clothes for bride/groom to wear','Invite close family & neighbours','Sweets for distribution'],
+ Churra:['Order churra set','Confirm mama (maternal uncle) & family','Kaleere','Photographer for churra ceremony','Gifts for mama & family'],
+ Batna:['Prepare batna paste','Arrange bathing area & towels','Coordinate family members for ritual','Breakfast / snacks for family'],
+ Jago:['Decorate jago gaagar with diyas','Oil, candles & matches','Plan route & notify neighbours','Book dhol player','Boliyan / song list','Late-night food'],
+ Wedding:['Confirm ceremony venue & timing','Confirm officiant / ceremony arrangements','Milni garlands & gifts','Baraat arrangements (car/horse, dhol)','Photographer & videographer','Finalize catering menu','Wedding attire & jewelry','Doli / vidaai arrangements'],
+ Reception:['Book reception hall','DJ & playlist','Seating chart','Cake & desserts','Stage & décor','MC / speeches','Guest favors','Transportation & parking']
+};
+const GENERIC_SUGG=['Book venue','Arrange food','Décor','Music','Photographer','Invite guests','Outfits'];
+const WEEK=7*864e5;
+
+/* ================= utils ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'x';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.\-]/g,''));return isFinite(n)?n:0};
+const sum=(arr,f)=>arr.reduce((a,x)=>a+num(typeof f==='function'?f(x):x[f]),0);
+function todayISO(){const t=new Date();t.setMinutes(t.getMinutes()-t.getTimezoneOffset());return t.toISOString().slice(0,10)}
+function fmt(n){try{return new Intl.NumberFormat('en-US',{style:'currency',currency:S.settings.currency||'USD'}).format(n||0)}catch(e){return '$'+(n||0).toFixed(2)}}
+function fmtDate(d){if(!d)return '—';const x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function fmtTime(ms){return new Date(ms).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function daysUntil(d){if(!d)return null;const a=new Date(d+'T00:00'),b=new Date(todayISO()+'T00:00');return Math.round((a-b)/864e5)}
+function pct(a,b){return b>0?Math.min(100,Math.round(a/b*100)):0}
+function evName(id){const e=S.events.find(x=>x.id===id);return e?e.name:''}
+function canon(v){if(Array.isArray(v))return '['+v.map(canon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}';return JSON.stringify(v===undefined?null:v)}
+const LS={get(k,d){try{const v=localStorage.getItem('wp-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('wp-'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('wp-'+k)}catch(e){}}};
+function b64encBytes(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)}
+const b64enc=str=>b64encBytes(new TextEncoder().encode(str));
+function b64dec(b){const bin=atob(b.replace(/\s/g,''));const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
+
+function b64bytes(b){const bin=atob(b.replace(/\s/g,''));const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+
+/* ================= passcode & encryption (AES-256-GCM, PBKDF2) ================= */
+const PC={code:null,salt:null,keys:{}};
+const hasCrypto=()=>!!(window.crypto&&crypto.subtle);
+function loadCode(){let c=null;try{c=sessionStorage.getItem('wp-pc')}catch(e){}PC.code=c||LS.get('pcode',null);PC.salt=LS.get('pcsalt',null)}
+function storeCode(code,remember){try{code?sessionStorage.setItem('wp-pc',code):sessionStorage.removeItem('wp-pc')}catch(e){}
+ if(code&&remember)LS.set('pcode',code);else LS.del('pcode')}
+const newSalt=()=>b64encBytes(crypto.getRandomValues(new Uint8Array(16)));
+async function deriveKey(code,salt){const k=code+'|'+salt;if(PC.keys[k])return PC.keys[k];
+ const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);
+ return PC.keys[k]=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64bytes(salt),iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function encBytes(key,u8){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,u8));const o=new Uint8Array(12+ct.length);o.set(iv);o.set(ct,12);return o}
+async function decBytes(key,u8){return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:u8.slice(0,12)},key,u8.slice(12)))}
+async function makeCheck(code){const salt=newSalt(),k=await deriveKey(code,salt);LS.set('pclock',{salt,data:b64encBytes(await encBytes(k,new TextEncoder().encode('wedding-ok')))})}
+async function verifyLocal(code){const c=LS.get('pclock',null);if(!c)return true;try{const k=await deriveKey(code,c.salt);return new TextDecoder().decode(await decBytes(k,b64bytes(c.data)))==='wedding-ok'}catch(e){return false}}
+async function encryptShared(text){const k=await deriveKey(PC.code,PC.salt);
+ return JSON.stringify({enc:1,salt:PC.salt,note:'Encrypted wedding planner data. Open the planner page and enter the family passcode to read it.',data:b64encBytes(await encBytes(k,new TextEncoder().encode(text)))})}
+async function decryptShared(obj){
+ const tries=[PC.code,(LS.get('pcpending',null)||{}).old].filter(Boolean);
+ for(const c of tries){try{const k=await deriveKey(c,obj.salt);return new TextDecoder().decode(await decBytes(k,b64bytes(obj.data)))}catch(e){}}
+ const err=new Error(PC.code?'The family passcode has been changed. Enter the new passcode.':'This shared planner is protected. Enter the family passcode.');err.needPass=true;throw err}
+let lockMode=null,started=false;
+function showLock(mode,msg){lockMode=mode;$('#lock').classList.add('show');$('#lockMsg').textContent=msg||'Enter the family passcode to open the planner.';
+ $('#lockTitle').textContent=(S&&S.settings.names)||'Wedding Planner';$('#lockErr').textContent='';$('#lockCode').value='';$('#lockRem').checked=!!LS.get('pcode',null);setTimeout(()=>$('#lockCode').focus(),50)}
+async function tryUnlock(){
+ const code=$('#lockCode').value;if(!code)return;const btn=$('#lockGo');btn.disabled=true;btn.textContent='Checking…';$('#lockErr').textContent='';
+ try{
+  if(lockMode==='local'){if(!(await verifyLocal(code))){$('#lockErr').textContent='That passcode is not right.';return}}
+  else{const prev=PC.code;PC.code=code;try{await pull()}catch(e){PC.code=prev;$('#lockErr').textContent=e.needPass?'That passcode is not right.':e.message;return}await makeCheck(code)}
+  PC.code=code;storeCode(code,$('#lockRem').checked);$('#lock').classList.remove('show');const m=lockMode;lockMode=null;
+  if(!started)start();else{render();if(m==='sync')sync()}
+ }finally{btn.disabled=false;btn.textContent='Unlock'}}
+$('#lockGo').addEventListener('click',tryUnlock);
+$('#lockCode').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock()});
+$('#lockForgot').addEventListener('click',e=>{e.preventDefault();
+ if(lockMode==='sync'||ghReady()){if(confirm('Ask whoever set up the planner for the current family passcode.\n\nIf you want to start over on this device instead, click OK to erase this device\'s copy (the shared copy on GitHub is not touched).')){resetDevice();$('#lock').classList.remove('show');lockMode=null;if(!started)start();else render()}}
+ else if(confirm('The passcode can\'t be recovered. Click OK to erase this device\'s copy of the planner and start fresh (download a backup next time!).')){resetDevice();$('#lock').classList.remove('show');lockMode=null;if(!started)start();else render()}});
+function resetDevice(){S=fresh();draft=newDraft();draftData=null;editingExp=null;for(const k in RC){delete RC[k];saveRC(k)}
+ GH.token='';LS.set('gh',GH);['pclock','pcode','pcsalt','pcpending'].forEach(k=>LS.del(k));storeCode(null);PC.code=null;PC.salt=null;lastErr='';persistLocal();setSync('')}
+
+/* ================= state ================= */
+let S, tab='dashboard', storageMode='memory', persisted=false;
+let draft=newDraft(), draftData=null, editingExp=null;
+const RC={};                                   // receipt image data per expense id: {rv,data}
+const COL=new Set(LS.get('collapsed',[]));     // collapsed events (this device only)
+let GH=Object.assign({owner:'',repo:'',branch:'main',path:'data/planner.json',rdir:'data/receipts',token:'',name:''},LS.get('gh',{}));
+const F={q:'',cat:'',ev:'',who:'',st:'',ts:'',ta:'',gq:''};
+function newDraft(keep={}){return{receiptName:'',category:keep.category||'',eventId:keep.eventId||'',desc:'',cost:'',boughtBy:keep.boughtBy||'',status:'Pending',method:'',dateBought:todayISO(),datePaid:'',receipt:null}}
+function fresh(){return{v:2,pristine:true,settings:{names:'',date:'',budget:0,currency:'USD',u:0},people:[],deleted:{},
+ categories:DEFAULT_CATS.map((n,i)=>({id:'cat-'+slug(n),name:n,budget:0,c:i,u:0})),
+ events:DEFAULT_EVENTS.map((n,i)=>({id:'ev-'+slug(n),name:n,date:'',venue:'',ord:i,c:i,u:0,tasks:[]})),
+ expenses:[],vendors:[],guests:[]}}
+const migratedRC=[];
+function normalize(s){
+ const f=fresh();if(!s||typeof s!=='object')return f;
+ const arr=(k)=>Array.isArray(s[k])?s[k]:f[k];
+ const withC=(list)=>list.map((x,i)=>({...x,c:x.c??i}));
+ const o={...f,...s};
+ o.settings={...f.settings,...(s.settings||{})};
+ o.deleted={...(s.deleted||{})};
+ o.people=withC((Array.isArray(s.people)?s.people:[]).map(p=>typeof p==='string'?{id:'p-'+slug(p),name:p,u:1}:p));
+ o.categories=withC(arr('categories').map(c=>({id:'cat-'+slug(c.name||'x'),...c})));
+ o.events=withC(arr('events')).map((e,i)=>{const ev={id:uid(),name:'Event',date:'',venue:'',...e,ord:e.ord??i,tasks:withC(Array.isArray(e.tasks)?e.tasks:[])};
+   if('collapsed' in ev){if(ev.collapsed)COL.add(ev.id);delete ev.collapsed}return ev}).sort((a,b)=>a.ord-b.ord);
+ o.expenses=withC(arr('expenses')).map(e=>{if(e.receipt&&e.receipt.data){const rv=e.receipt.rv||uid();RC[e.id]={rv,data:e.receipt.data};migratedRC.push(e.id);const{data,...m}=e.receipt;return{...e,receipt:{...m,rv}}}return e});
+ o.vendors=withC(arr('vendors'));o.guests=withC(arr('guests'));
+ if(s.pristine===undefined)o.pristine=false;
+ return o}
+function touch(o){if(o){o.u=Date.now();if(GH.name)o.by=GH.name}}
+function tomb(id){S.deleted[id]=Date.now()}
+function addPerson(n){n=String(n||'').trim();if(!n||S.people.some(p=>p.name.toLowerCase()===n.toLowerCase()))return;const p={id:'p-'+slug(n),name:n,c:Date.now()};touch(p);S.people.push(p)}
+
+/* ================= local storage (IndexedDB) ================= */
+const DB={db:null,
+ open(){return new Promise((res,rej)=>{if(!window.indexedDB)return rej('no idb');const r=indexedDB.open('wedding-planner',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{this.db=r.result;res()};r.onerror=()=>rej(r.error)})},
+ get(k){return new Promise((res,rej)=>{const q=this.db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})},
+ set(k,v){return new Promise((res,rej)=>{const tx=this.db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})},
+ del(k){return new Promise((res,rej)=>{const tx=this.db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})},
+ prefix(p){return new Promise((res,rej)=>{const out={};const q=this.db.transaction('kv').objectStore('kv').openCursor(IDBKeyRange.bound(p,p+'￿'));
+  q.onsuccess=()=>{const c=q.result;if(c){out[c.key]=c.value;c.continue()}else res(out)};q.onerror=()=>rej(q.error)})}};
+async function load(){
+ try{await DB.open();storageMode='idb';const s=await DB.get('state');const rc=await DB.prefix('rc:');for(const k in rc)RC[k.slice(3)]=rc[k];return s||null}
+ catch(e){try{const s=localStorage.getItem('wedding-planner');storageMode='local';
+   for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('wp-rc:'))RC[k.slice(6)]=JSON.parse(localStorage.getItem(k))}
+   return s?JSON.parse(s):null}catch(e2){storageMode='memory';return null}}}
+async function saveRC(id){try{if(storageMode==='idb'){RC[id]?await DB.set('rc:'+id,RC[id]):await DB.del('rc:'+id)}
+ else if(storageMode==='local'){RC[id]?localStorage.setItem('wp-rc:'+id,JSON.stringify(RC[id])):localStorage.removeItem('wp-rc:'+id)}}catch(e){setSaveInd('⚠ Receipt too large to store on this device')}}
+let saveTimer;
+function setSaveInd(t){$('#saveInd').textContent=t}
+async function persistLocal(){
+ try{if(storageMode==='idb')await DB.set('state',JSON.parse(JSON.stringify(S)));
+  else if(storageMode==='local')localStorage.setItem('wedding-planner',JSON.stringify(S));
+  setSaveInd(storageMode==='memory'?'⚠ Not saved in this browser — use Backup':'✓ Saved on this device')}
+ catch(e){setSaveInd('⚠ Save failed — export a backup')}}
+function save(){S.pristine=false;setSaveInd('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(persistLocal,300);scheduleSync(4000)}
+async function requestPersist(){try{if(navigator.storage&&navigator.storage.persist){persisted=await navigator.storage.persisted();if(!persisted)persisted=await navigator.storage.persist()}}catch(e){}}
+
+/* ================= merge (record-level, last edit wins) ================= */
+const byC=(a,b)=>((a.c??0)-(b.c??0))||String(a.id).localeCompare(String(b.id));
+function newer(x,p){const xu=x.u||0,pu=p.u||0;return xu>pu||(xu===pu&&canon(x)>canon(p))}
+function mergeList(a=[],b=[],del={}){const m=new Map();for(const x of a)m.set(x.id,x);
+ for(const x of b){const p=m.get(x.id);if(!p||newer(x,p))m.set(x.id,x)}
+ return [...m.values()].filter(x=>!(del[x.id]!=null&&del[x.id]>=(x.u||0))).sort(byC)}
+function mergeState(L,R){
+ if(!R)return L;
+ const del={...(R.deleted||{})};for(const[k,v]of Object.entries(L.deleted||{}))del[k]=Math.max(del[k]||0,v);
+ const out={...L,deleted:del,v:2};
+ out.settings=newer(R.settings||{},L.settings||{})?R.settings:L.settings;
+ for(const k of ['categories','expenses','vendors','guests','people'])out[k]=mergeList(L[k],R[k],del);
+ const strip=e=>{const{tasks,...r}=e;return r};
+ const evs=mergeList(L.events.map(strip),(R.events||[]).map(strip),del);
+ out.events=evs.map(e=>{const le=L.events.find(x=>x.id===e.id),re=(R.events||[]).find(x=>x.id===e.id);
+  return{...e,tasks:mergeList(le?le.tasks:[],re?re.tasks:[],del)}}).sort((a,b)=>((a.ord??0)-(b.ord??0))||byC(a,b));
+ return out}
+function sharedText(st){const{pristine,...rest}=st;return canon(rest)}
+
+/* ================= GitHub sync ================= */
+let syncTimer=null,syncing=false,syncAgain=false,repoOk=false,lastErr='',lastSync=LS.get('lastSync',0),needRender=false;
+const ghReady=()=>!!(GH.owner&&GH.repo&&GH.token);
+function setSync(t,cls){const el=$('#syncInd');el.style.display=ghReady()?'':'none';el.textContent=t;el.className='ind '+(cls||'');el.title=lastErr||'Click to sync now'}
+function scheduleSync(ms=4000){if(!ghReady())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(),ms)}
+function ghUrl(path,isRepo){const base=`https://api.github.com/repos/${encodeURIComponent(GH.owner.trim())}/${encodeURIComponent(GH.repo.trim())}`;
+ return isRepo?base:`${base}/contents/${path.split('/').filter(Boolean).map(encodeURIComponent).join('/')}`}
+async function gh(method,path,body,accept,isRepo){
+ let url=ghUrl(path,isRepo);if(method==='GET'&&!isRepo&&GH.branch)url+=`?ref=${encodeURIComponent(GH.branch.trim())}`;
+ return fetch(url,{method,cache:'no-store',headers:{Authorization:`Bearer ${GH.token.trim()}`,Accept:accept||'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined})}
+async function apiErr(r,what){let m='';try{m=(await r.json()).message||''}catch(e){}
+ if(r.status===401)return new Error('GitHub rejected the access token (invalid or expired).');
+ if(r.status===403)return new Error('Token is not allowed to do this ('+(m||'forbidden')+'). It needs Contents: Read and write on this repository.');
+ if(r.status===404)return new Error(`${what||'Repository'} not found — check owner/repository name, and that the token has access to it.`);
+ return new Error(`GitHub error ${r.status}: ${m}`)}
+async function checkRepo(){const r=await gh('GET','',null,null,true);if(!r.ok)throw await apiErr(r,'Repository');const j=await r.json();repoOk=true;return j}
+async function pull(){
+ const r=await gh('GET',GH.path);if(r.status===404)return{sha:null,text:null};if(!r.ok)throw await apiErr(r,'Data file');
+ const j=await r.json();let text;
+ if(j.content&&j.encoding==='base64')text=b64dec(j.content);
+ else{const r2=await gh('GET',GH.path,null,'application/vnd.github.raw+json');if(!r2.ok)throw await apiErr(r2,'Data file');text=await r2.text()}
+ let obj;try{obj=JSON.parse(text)}catch(e){throw new Error('The shared data file on GitHub is not valid JSON.')}
+ if(obj&&obj.enc){if(!hasCrypto())throw new Error('This browser cannot decrypt the planner (open it from the https:// GitHub Pages link).');
+  return{sha:j.sha,text,plain:await decryptShared(obj),enc:true,salt:obj.salt}}
+ return{sha:j.sha,text,plain:text,enc:false}}
+async function push(text,sha){
+ const body={message:`Wedding planner update${GH.name?' by '+GH.name:''}`,content:b64enc(text)};if(sha)body.sha=sha;if(GH.branch)body.branch=GH.branch.trim();
+ const r=await gh('PUT',GH.path,body);if(r.status===409||r.status===422)return 'conflict';if(!r.ok)throw await apiErr(r,'Data file');return 'ok'}
+function rExt(t){return t==='application/pdf'?'pdf':t==='image/png'?'png':t==='image/gif'?'gif':t==='image/webp'?'webp':'jpg'}
+async function uploadReceipts(){
+ for(const e of S.expenses){if(!e.receipt||e.receipt.path)continue;const rc=RC[e.id];if(!rc||rc.rv!==e.receipt.rv)continue;
+  const enc=!!PC.salt,tagS=enc?PC.salt.replace(/[^a-z0-9]/gi,'').slice(0,6):'';
+  const path=`${(GH.rdir||'data/receipts').replace(/\/+$/,'')}/${e.id}-${e.receipt.rv}${enc?'-'+tagS+'.enc':'.'+rExt(e.receipt.type)}`;
+  let content=rc.data.split(',')[1];
+  if(enc)content=b64encBytes(await encBytes(await deriveKey(PC.code,PC.salt),b64bytes(content)));
+  const body={message:`Receipt: ${enc?'(encrypted)':e.receiptName||e.receipt.name}`,content};if(GH.branch)body.branch=GH.branch.trim();
+  const r=await gh('PUT',path,body);
+  if(!r.ok&&r.status!==422)throw await apiErr(r,'Receipts folder');
+  const old=e.receipt.oldPath;delete e.receipt.oldPath;
+  e.receipt.path=path;e.receipt.enc=enc;touch(e);
+  if(old&&old!==path)deleteFile(old)}}
+async function deleteFile(path){try{const r=await gh('GET',path);if(!r.ok)return;const j=await r.json();
+ const body={message:'Remove replaced receipt copy',sha:j.sha};if(GH.branch)body.branch=GH.branch.trim();await gh('DELETE',path,body)}catch(e){}}
+async function downloadReceipt(e){
+ const r=await gh('GET',e.receipt.path,null,'application/vnd.github.raw+json');if(!r.ok)throw await apiErr(r,'Receipt file');
+ let buf=new Uint8Array(await r.arrayBuffer());
+ if(/\.enc$/.test(e.receipt.path)){if(!PC.code||!PC.salt)throw new Error('Passcode needed');buf=await decBytes(await deriveKey(PC.code,PC.salt),buf)}
+ RC[e.id]={rv:e.receipt.rv,data:`data:${e.receipt.type};base64,`+b64encBytes(buf)};await saveRC(e.id)}
+async function downloadMissing(){let any=false;
+ for(const e of S.expenses){if(e.receipt&&e.receipt.path&&(!RC[e.id]||RC[e.id].rv!==e.receipt.rv)){try{await downloadReceipt(e);any=true}catch(err){}}}
+ if(any)safeRender()}
+async function sync(){
+ if(!ghReady()||lockMode)return;if(syncing){syncAgain=true;return}
+ syncing=true;clearTimeout(syncTimer);setSync('⟳ Syncing…');
+ try{
+  if(!repoOk)await checkRepo();
+  let done=false;const pend=LS.get('pcpending',null);
+  for(let i=0;i<5&&!done;i++){
+   const rem=await pull();
+   if(!pend&&rem.text)PC.salt=rem.enc?rem.salt:null;           // follow the shared file's protection setting
+   if(PC.salt&&!PC.code){const err=new Error('Enter the family passcode.');err.needPass=true;throw err}
+   await uploadReceipts();
+   const R=rem.plain?JSON.parse(rem.plain):null;
+   let merged;
+   if(R&&S.pristine){merged=normalize(R);merged.pristine=false}   // brand-new device: adopt shared data
+   else merged=mergeState(S,R?normalize(R):null);
+   const text=sharedText(merged);
+   const protChanged=rem.text!=null&&((!!PC.salt)!==rem.enc||(PC.salt&&rem.salt!==PC.salt));
+   if(text!==rem.plain||protChanged){
+    const body=PC.salt?await encryptShared(text):text;
+    if(await push(body,rem.sha)==='conflict'){await new Promise(r=>setTimeout(r,400+Math.random()*600));continue}}
+   S=S.pristine?merged:mergeState(S,merged);S.pristine=false;   // keep any edits made while syncing
+   done=true}
+  if(!done)throw new Error('Could not save after several tries — someone else is editing. Will retry.');
+  if(pend)LS.del('pcpending');PC.salt?LS.set('pcsalt',PC.salt):LS.del('pcsalt');
+  if(PC.salt&&!LS.get('pclock',null)&&PC.code)await makeCheck(PC.code);
+  lastErr='';lastSync=Date.now();LS.set('lastSync',lastSync);
+  await persistLocal();setSync('☁ Synced '+new Date(lastSync).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),'ok');
+  safeRender();downloadMissing();
+ }catch(e){lastErr=e.message||String(e);
+  if(e.needPass){setSync('🔒 Passcode needed','err');PC.code=null;storeCode(null);syncing=false;showLock('sync',e.message);return}
+  setSync('⚠ Sync problem','err');if(tab==='settings')safeRender()}
+ finally{syncing=false;if(syncAgain){syncAgain=false;scheduleSync(800)}}}
+const isEditing=()=>{const a=document.activeElement;return a&&$('#view').contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)};
+function safeRender(){if(isEditing()){needRender=true}else render()}
+document.addEventListener('focusout',()=>setTimeout(()=>{if(needRender&&!isEditing()){needRender=false;render()}},60));
+setInterval(()=>{if(document.visibilityState==='visible'&&ghReady())sync()},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ghReady())scheduleSync(300)});
+
+/* ================= field helper ================= */
+function fld(o){
+ const k=`${o.col}|${o.ev||''}|${o.id||''}|${o.f}`;
+ const base=`data-col="${o.col}" data-id="${o.id||''}" data-ev="${o.ev||''}" data-f="${o.f}" data-key="${esc(k)}" ${o.num?'data-num="1"':''} class="${o.cls||''}" ${o.list?`list="${o.list}"`:''} ${o.ph?`placeholder="${esc(o.ph)}"`:''} ${o.title?`title="${esc(o.title)}"`:''}`;
+ if(o.opts)return `<select ${base}>${o.opts.map(x=>{const[v,l]=Array.isArray(x)?x:[x,x||'—'];return `<option value="${esc(v)}" ${String(v)===String(o.val??'')?'selected':''}>${esc(l)}</option>`}).join('')}</select>`;
+ return `<input type="${o.type||'text'}" ${o.type==='number'?'step="0.01" min="0" inputmode="decimal"':''} ${base} value="${esc(o.val??'')}">`;
+}
+function stCls(v){return v==='Paid'||v==='Complete'||v==='Attending'?'s-ok':v==='Pending'?'s-pend':v==='Declined'?'s-bad':'s-na'}
+function findItem(col,id,ev){
+ if(col==='settings')return S.settings;
+ if(col==='tasks'){const e=S.events.find(x=>x.id===ev);return e&&e.tasks.find(t=>t.id===id)}
+ return (S[col]||[]).find(x=>x.id===id)}
+
+/* ================= render ================= */
+function render(){
+ const fn={dashboard:rDash,expenses:rExp,checklist:rCheck,vendors:rVend,guests:rGuest,settings:rSet}[tab];
+ $('#view').innerHTML=fn();needRender=false;
+ document.querySelectorAll('#nav .tabb').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+ $('#peopleList').innerHTML=S.people.map(p=>`<option value="${esc(p.name)}">`).join('');
+ const st=S.settings;$('#hdrNames').textContent=st.names||'Our Wedding';
+ $('#hdrSub').textContent=st.date?`${fmtDate(st.date)} · Planner & expense tracker`:'Planner & expense tracker — add your date in Settings';
+ const d=daysUntil(st.date);
+ $('#hdrCount').innerHTML=d===null?'':d>0?`<b>${d}</b><span class="sub">days to go</span>`:d===0?`<b>Today!</b><span class="sub">Congratulations 🎉</span>`:`<b>${-d}</b><span class="sub">days since the wedding</span>`;
+ renderBackupBar();
+ $('#lockBtn').style.display=LS.get('pclock',null)?'':'none';
+}
+function rerenderSoon(){setTimeout(()=>{const a=document.activeElement;const key=a&&a.dataset?a.dataset.key:null;
+ let pos=null;try{pos=a.selectionStart}catch(e){}
+ render();if(key){const n=document.querySelector(`[data-key="${CSS.escape(key)}"]`);if(n){n.focus();try{if(pos!=null&&n.setSelectionRange)n.setSelectionRange(pos,pos)}catch(e){}}}},0)}
+function hasData(){return S.expenses.length||S.vendors.length||S.guests.length||S.events.some(e=>e.tasks.length)}
+function renderBackupBar(){
+ const bar=$('#bakBar');const last=Math.max(LS.get('lastBackup',0),LS.get('firstUse',Date.now()),ghReady()&&!lastErr?lastSync:0);
+ const show=hasData()&&Date.now()-last>WEEK&&Date.now()>LS.get('snooze',0);
+ bar.classList.toggle('show',!!show);
+ if(show){const days=Math.floor((Date.now()-Math.max(LS.get('lastBackup',0),LS.get('firstUse',Date.now())))/864e5);
+  bar.innerHTML=`💾 <span>${LS.get('lastBackup',0)?`It's been ${days} days since you downloaded a backup on this device.`:`You haven't downloaded a backup on this device yet.`} Receipts and payment records are hard to recreate — keep a copy.</span><button class="btn sm pri" data-act="backup">Download backup</button><button class="btn sm" data-act="snooze">Remind me tomorrow</button>`}}
+
+/* ---------- Dashboard ---------- */
+function stats(){
+ const exp=S.expenses,budget=num(S.settings.budget);
+ const spent=sum(exp,'cost'),repaid=sum(exp.filter(e=>e.status==='Paid'),'cost');
+ const tasks=S.events.flatMap(e=>e.tasks.map(t=>({...t,evId:e.id,evName:e.name})));
+ const done=tasks.filter(t=>t.status==='Complete').length;
+ const tPend=sum(tasks.filter(t=>t.payStatus==='Pending'),'amount');
+ const vBal=S.vendors.reduce((a,v)=>a+(v.status==='Paid'?0:Math.max(0,num(v.total)-num(v.deposit))),0);
+ return{budget,spent,repaid,owed:spent-repaid,remaining:budget-spent,tasks,done,tPend,vBal}}
+function catRows(){const exp=S.expenses;const cats=S.categories.map(c=>({...c,spent:sum(exp.filter(e=>e.category===c.name),'cost')}));
+ const uncat=sum(exp.filter(e=>!S.categories.some(c=>c.name===e.category)),'cost');return{cats,uncat}}
+function peopleRows(){const ppl={};S.expenses.forEach(e=>{const p=e.boughtBy||'(not set)';ppl[p]=ppl[p]||{t:0,r:0,n:0};ppl[p].t+=num(e.cost);ppl[p].n++;if(e.status==='Paid')ppl[p].r+=num(e.cost)});
+ return Object.entries(ppl).sort((a,b)=>(b[1].t-b[1].r)-(a[1].t-a[1].r))}
+function rDash(){
+ const st=S.settings,X=stats();
+ let h='';
+ if(!st.names||!st.date||!X.budget)h+=`<div class="note noprint" style="margin-bottom:16px">👋 <b>Getting started:</b> add the couple's names, wedding date and total budget in <a href="#" data-act="tab" data-tab="settings">Settings</a>, plus family members who'll be buying things or handling tasks. To share with family, set up <b>Shared sync</b> in Settings.</div>`;
+ h+=`<div class="grid stats" style="margin-bottom:16px">
+  <div class="card stat acc"><div class="lbl">Total budget</div><div class="val">${fmt(X.budget)}</div><div class="hint">${X.budget?pct(X.spent,X.budget)+'% used':'Set in Settings'}</div></div>
+  <div class="card stat gold"><div class="lbl">Spent (logged expenses)</div><div class="val">${fmt(X.spent)}</div><div class="hint">${S.expenses.length} receipt${S.expenses.length===1?'':'s'}</div></div>
+  <div class="card stat ${X.remaining<0?'pendc':'okc'}"><div class="lbl">Budget remaining</div><div class="val" style="${X.remaining<0?'color:var(--bad)':''}">${fmt(X.remaining)}</div><div class="hint">${X.remaining<0?'Over budget':'Budget − logged expenses'}</div></div>
+  <div class="card stat pendc"><div class="lbl">Owed back to buyers</div><div class="val">${fmt(X.owed)}</div><div class="hint">${fmt(X.repaid)} already paid back</div></div>
+  <div class="card stat okc"><div class="lbl">Tasks complete</div><div class="val">${X.done} / ${X.tasks.length}</div><div class="bar" style="margin-top:6px"><i class="ok" style="width:${pct(X.done,X.tasks.length)}%"></i></div></div>
+  <div class="card stat pendc"><div class="lbl">Payments still pending</div><div class="val">${fmt(X.tPend+X.vBal)}</div><div class="hint">Checklist ${fmt(X.tPend)} · Vendors ${fmt(X.vBal)}</div></div>
+ </div>`;
+ const{cats,uncat}=catRows();
+ let ch=cats.filter(c=>c.spent||num(c.budget)).map(c=>{const b=num(c.budget),over=b&&c.spent>b;
+  return `<tr><td>${esc(c.name)}</td><td style="width:35%"><div class="bar"><i class="${over?'over':''}" style="width:${b?pct(c.spent,b):(c.spent?100:0)}%"></i></div></td><td class="num">${fmt(c.spent)}</td><td class="num muted">${b?fmt(b):'—'}</td><td class="num ${over?'overdue':''}">${b?fmt(b-c.spent):''}</td></tr>`}).join('');
+ if(uncat)ch+=`<tr><td class="muted">Uncategorized</td><td></td><td class="num">${fmt(uncat)}</td><td></td><td></td></tr>`;
+ const ph=peopleRows().map(([p,v])=>{const o=v.t-v.r;
+  return `<tr class="${o>0.004?'pend':'ok'}"><td>${esc(p)}</td><td class="num">${v.n}</td><td class="num">${fmt(v.t)}</td><td class="num">${fmt(v.r)}</td><td class="num"><b>${fmt(o)}</b></td><td>${o>0.004?'<span class="pill pend">Owed</span>':'<span class="pill ok">Settled</span>'}</td></tr>`}).join('');
+ h+=`<div class="grid two">
+  <div class="card"><h2>Budget by category</h2>${ch?`<div class="tw"><table><thead><tr><th>Category</th><th>Used</th><th class="num">Spent</th><th class="num">Budget</th><th class="num">Left</th></tr></thead><tbody>${ch}</tbody></table></div>`:'<div class="empty">No expenses or category budgets yet.</div>'}</div>
+  <div class="card"><h2>Reimbursements by person</h2>${ph?`<div class="tw"><table><thead><tr><th>Bought by</th><th class="num">#</th><th class="num">Spent</th><th class="num">Paid back</th><th class="num">Still owed</th><th></th></tr></thead><tbody>${ph}</tbody></table></div>`:'<div class="empty">Log expenses to see who is owed what.</div>'}</div>
+ </div>`;
+ const eh=S.events.map(e=>{const n=e.tasks.length,dn=e.tasks.filter(t=>t.status==='Complete').length,es=sum(S.expenses.filter(x=>x.eventId===e.id),'cost'),pp=sum(e.tasks.filter(t=>t.payStatus==='Pending'),'amount'),d=daysUntil(e.date);
+  return `<tr class="${n&&dn===n?'ok':n?'pend':''}"><td><a href="#" data-act="gotoEvent" data-id="${e.id}"><b>${esc(e.name)}</b></a></td><td>${fmtDate(e.date)}${d!==null&&d>=0?` <span class="muted small">(${d}d)</span>`:''}</td><td class="small">${esc(e.venue||'')}</td><td style="width:22%"><div class="bar"><i class="${n&&dn===n?'ok':''}" style="width:${pct(dn,n)}%"></i></div></td><td class="num">${dn}/${n}</td><td class="num">${fmt(es)}</td><td class="num">${pp?`<span class="pill pend">${fmt(pp)}</span>`:'<span class="muted">—</span>'}</td></tr>`}).join('');
+ h+=`<div class="card"><h2>Events at a glance</h2><div class="tw"><table><thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Progress</th><th class="num">Tasks</th><th class="num">Expenses</th><th class="num">Pending pay</th></tr></thead><tbody>${eh}</tbody></table></div></div>`;
+ const up=[];
+ X.tasks.filter(t=>t.status!=='Complete'&&t.due).forEach(t=>{const d=daysUntil(t.due);if(d<=14)up.push({d,date:t.due,txt:`<b>${esc(t.title||'Untitled task')}</b> <span class="muted">· ${esc(t.evName)}${t.assignee?' · '+esc(t.assignee):''}</span>`})});
+ X.tasks.filter(t=>t.payStatus==='Pending'&&t.due&&t.status==='Complete').forEach(t=>{const d=daysUntil(t.due);if(d<=14)up.push({d,date:t.due,txt:`💳 Payment ${fmt(num(t.amount))} for <b>${esc(t.title)}</b> <span class="muted">· ${esc(t.evName)}</span>`})});
+ S.vendors.filter(v=>v.status!=='Paid'&&v.due).forEach(v=>{const d=daysUntil(v.due);if(d<=30)up.push({d,date:v.due,txt:`💳 Vendor balance <b>${esc(v.name||'Vendor')}</b> ${fmt(Math.max(0,num(v.total)-num(v.deposit)))} <span class="muted">· ${esc(v.service||'')}</span>`})});
+ up.sort((a,b)=>a.d-b.d);
+ h+=`<div class="card"><h2>Coming up &amp; overdue</h2>${up.length?`<ul class="list-up">${up.map(u=>`<li><span class="pill ${u.d<0?'bad':u.d<=3?'pend':'na'}">${u.d<0?Math.abs(u.d)+'d overdue':u.d===0?'Today':'in '+u.d+'d'}</span><span class="small muted" style="width:95px">${fmtDate(u.date)}</span><span>${u.txt}</span></li>`).join('')}</ul>`:'<div class="empty">Nothing due in the next two weeks. Add due dates to checklist tasks and vendor balances to see reminders here.</div>'}</div>`;
+ return h;
+}
+
+/* ---------- Expenses ---------- */
+function rcData(e){const r=RC[e.id];return e.receipt&&r&&r.rv===e.receipt.rv?r.data:null}
+function catOpts(){const o=S.categories.map(c=>c.name);if(draft.category&&!o.includes(draft.category))o.push(draft.category);return o}
+function evOpts(){return [['','General / not event-specific'],...S.events.map(e=>[e.id,e.name])]}
+function dsel(f,opts){return `<select data-d="${f}">${opts.map(x=>{const[v,l]=Array.isArray(x)?x:[x,x||'—'];return `<option value="${esc(v)}" ${String(v)===String(draft[f]??'')?'selected':''}>${esc(l)}</option>`}).join('')}</select>`}
+function dinp(f,type='text',extra=''){return `<input type="${type}" data-d="${f}" value="${esc(draft[f]??'')}" ${type==='number'?'step="0.01" min="0" inputmode="decimal"':''} ${extra}>`}
+function filteredExpenses(){const q=F.q.toLowerCase();
+ return S.expenses.filter(e=>(!F.cat||e.category===F.cat)&&(!F.ev||(F.ev==='_none'?!e.eventId:e.eventId===F.ev))&&(!F.who||e.boughtBy===F.who)&&(!F.st||e.status===F.st)&&(!q||[e.receiptName,e.desc,e.category,e.boughtBy,e.method].join(' ').toLowerCase().includes(q)))
+  .sort((a,b)=>(b.dateBought||'').localeCompare(a.dateBought||''))}
+function rExp(){
+ const r=draft.receipt;
+ let h=`<div class="card noprint"><h2>${editingExp?'Edit expense':'Add an expense'}</h2><div class="exform">
+  <div class="drop ${r?'has':''}" data-drop="draft" data-act="pick" data-id="draft">
+   ${r?(r.type.startsWith('image/')&&draftData?`<img src="${draftData}" alt="">`:'<span class="big">📄</span>')+`<div style="text-align:left"><b>${esc(r.name)}</b><br><span class="small">${Math.round((r.size||0)/1024)} KB · click to replace</span><br><button class="btn sm danger" data-act="rmDraftReceipt" style="margin-top:6px">Remove</button></div>`
+    :`<div><div class="big">🧾</div><b>Drag &amp; drop receipt here</b><br><span class="small">or click to choose · photo or PDF</span></div>`}
+  </div>
+  <div class="formgrid">
+   <label class="f">Receipt name ${dinp('receiptName','text','placeholder="e.g. Sweets order"')}</label>
+   <label class="f">Expense category ${dsel('category',['',...catOpts()])}</label>
+   <label class="f">Event ${dsel('eventId',evOpts())}</label>
+   <label class="f" style="grid-column:span 2">Brief description ${dinp('desc','text','placeholder="What was bought?"')}</label>
+   <label class="f">Cost ${dinp('cost','number','placeholder="0.00"')}</label>
+   <label class="f">Bought by ${dinp('boughtBy','text','list="peopleList" placeholder="Name"')}</label>
+   <label class="f">Date bought ${dinp('dateBought','date')}</label>
+   <label class="f">Paid back to buyer? ${dsel('status',['Pending','Paid'])}</label>
+   <label class="f">Paid via ${dsel('method',METHODS)}</label>
+   <label class="f">Date paid to buyer ${dinp('datePaid','date')}</label>
+   <div style="display:flex;gap:8px;align-items:end"><button class="btn pri" data-act="exSave">${editingExp?'Update expense':'＋ Add expense'}</button><button class="btn" data-act="exClear">${editingExp?'Cancel':'Clear'}</button></div>
+  </div></div></div>`;
+ const rows=filteredExpenses();
+ const who=[...new Set(S.expenses.map(e=>e.boughtBy).filter(Boolean))].sort();
+ const fsel=(k,opts,ph)=>`<select data-flt="${k}" data-key="flt|${k}"><option value="">${ph}</option>${opts.map(x=>{const[v,l]=Array.isArray(x)?x:[x,x];return `<option value="${esc(v)}" ${F[k]===v?'selected':''}>${esc(l)}</option>`}).join('')}</select>`;
+ h+=`<div class="card"><div class="toolbar noprint">
+   <input data-flt="q" data-key="flt|q" placeholder="🔍 Search…" value="${esc(F.q)}" style="width:180px">
+   ${fsel('cat',S.categories.map(c=>c.name),'All categories')}
+   ${fsel('ev',[['_none','General'],...S.events.map(e=>[e.id,e.name])],'All events')}
+   ${fsel('who',who,'Everyone')}
+   ${fsel('st',[['Pending','Pending'],['Paid','Paid']],'Any status')}
+   <span class="spacer"></span>
+   <span class="legend"><span class="pill ok">Paid</span><span class="pill pend">Pending</span></span>
+   <button class="btn sm" data-act="pdf" data-preset="expenses">📄 PDF</button>
+   <button class="btn sm" data-act="csv">⬇ CSV</button></div>
+  ${rows.length?`<div class="tw"><table><thead><tr><th>Receipt</th><th>Name / description</th><th>Category · Event</th><th>Bought by</th><th>Date bought</th><th class="num">Cost</th><th>Paid via</th><th>Status</th><th>Date paid to buyer</th><th></th></tr></thead><tbody>
+  ${rows.map(e=>`<tr class="${e.status==='Paid'?'ok':'pend'}">
+   <td>${rcell(e)}</td>
+   <td><b>${esc(e.receiptName||'—')}</b><div class="small muted">${esc(e.desc)}</div></td>
+   <td class="small">${esc(e.category||'—')}<div class="muted">${esc(evName(e.eventId)||'General')}</div></td>
+   <td>${esc(e.boughtBy||'—')}</td>
+   <td class="small">${fmtDate(e.dateBought)}</td>
+   <td class="num"><b>${fmt(num(e.cost))}</b></td>
+   <td style="min-width:120px">${fld({col:'expenses',id:e.id,f:'method',val:e.method,opts:METHODS})}</td>
+   <td style="min-width:105px">${fld({col:'expenses',id:e.id,f:'status',val:e.status,opts:['Pending','Paid'],cls:stCls(e.status)})}</td>
+   <td style="min-width:140px">${fld({col:'expenses',id:e.id,f:'datePaid',val:e.datePaid,type:'date'})}</td>
+   <td style="white-space:nowrap"><button class="btn sm ghost" data-act="exEdit" data-id="${e.id}" title="Edit">✏️</button><button class="btn sm ghost danger" data-act="exDel" data-id="${e.id}" title="Delete">🗑</button></td></tr>`).join('')}
+  </tbody><tfoot><tr><td colspan="5">${rows.length} expense${rows.length===1?'':'s'} shown</td><td class="num">${fmt(sum(rows,'cost'))}</td><td colspan="4" class="small"><span class="pill ok">Paid ${fmt(sum(rows.filter(e=>e.status==='Paid'),'cost'))}</span> <span class="pill pend">Pending ${fmt(sum(rows.filter(e=>e.status!=='Paid'),'cost'))}</span></td></tr></tfoot></table></div>`
+  :`<div class="empty">${S.expenses.length?'No expenses match these filters.':'No expenses yet — drag a receipt into the box above to start.'}</div>`}
+  <div class="small muted noprint" style="margin-top:8px">Tip: drop a receipt onto the ＋ square in any row to attach it to that expense.</div></div>`;
+ return h;
+}
+function rcell(e){const r=e.receipt;
+ if(r){const d=rcData(e);
+  if(!d)return `<div class="mini-drop file" data-act="view" data-id="${e.id}" data-drop="${e.id}" title="Receipt not downloaded yet — click to fetch">⏳</div>`;
+  return r.type.startsWith('image/')?`<img class="thumb" src="${d}" data-act="view" data-id="${e.id}" data-drop="${e.id}" title="${esc(r.name)} — click to view">`:`<div class="mini-drop file" data-act="view" data-id="${e.id}" data-drop="${e.id}" title="${esc(r.name)} — click to view">📄</div>`}
+ return `<div class="mini-drop" data-drop="${e.id}" data-act="pick" data-id="${e.id}" title="Drop or click to attach receipt">＋</div>`}
+
+/* ---------- Checklist ---------- */
+function rCheck(){
+ const assignees=[...new Set(S.events.flatMap(e=>e.tasks.map(t=>t.assignee)).filter(Boolean))].sort();
+ let h=`<div class="card noprint"><div class="toolbar" style="margin:0">
+  <input id="newEvent" placeholder="New event / function name (e.g. Sangeet)" style="width:270px"><button class="btn pri" data-act="addEvent">＋ Add event</button>
+  <span class="spacer"></span>
+  <select data-flt="ts" data-key="flt|ts"><option value="">All tasks</option><option value="Pending" ${F.ts==='Pending'?'selected':''}>Pending only</option><option value="Complete" ${F.ts==='Complete'?'selected':''}>Complete only</option></select>
+  <select data-flt="ta" data-key="flt|ta"><option value="">Anyone</option>${assignees.map(a=>`<option ${F.ta===a?'selected':''}>${esc(a)}</option>`).join('')}</select>
+  <button class="btn sm" data-act="expandAll">Expand all</button><button class="btn sm" data-act="collapseAll">Collapse all</button>
+  <button class="btn sm" data-act="pdf" data-preset="checklist">📄 PDF</button>
+  <span class="legend"><span class="pill ok">Complete / Paid</span><span class="pill pend">Pending</span></span></div></div>`;
+ if(!S.events.length)h+=`<div class="card empty">No events yet. Add one above.</div>`;
+ const t0=todayISO();
+ S.events.forEach((ev,i)=>{
+  const n=ev.tasks.length,dn=ev.tasks.filter(t=>t.status==='Complete').length,collapsed=COL.has(ev.id);
+  const pPaid=sum(ev.tasks.filter(t=>t.payStatus==='Paid'),'amount'),pPend=sum(ev.tasks.filter(t=>t.payStatus==='Pending'),'amount');
+  const shown=ev.tasks.filter(t=>(!F.ts||t.status===F.ts)&&(!F.ta||t.assignee===F.ta));
+  const d=daysUntil(ev.date);
+  h+=`<div class="card event ${!n?'empty-ev':dn===n?'done':''}" id="ev-${ev.id}"><div class="ehead">
+   <button class="btn sm ghost noprint" data-act="toggleEvent" data-id="${ev.id}" title="Collapse/expand">${collapsed?'▸':'▾'}</button>
+   ${fld({col:'events',id:ev.id,f:'name',val:ev.name,cls:'ename'})}
+   ${fld({col:'events',id:ev.id,f:'date',val:ev.date,type:'date',title:'Event date'})}
+   ${fld({col:'events',id:ev.id,f:'venue',val:ev.venue,cls:'venue',ph:'Venue / location'})}
+   ${d!==null&&d>=0?`<span class="small muted">${d===0?'Today':d+' days'}</span>`:''}
+   <div class="prog"><div class="bar" style="flex:1"><i class="${n&&dn===n?'ok':''}" style="width:${pct(dn,n)}%"></i></div>${dn}/${n} done</div>
+   ${pPaid?`<span class="pill ok">Paid ${fmt(pPaid)}</span>`:''}${pPend?`<span class="pill pend">Pending ${fmt(pPend)}</span>`:''}
+   <span class="spacer"></span>
+   <span class="noprint" style="white-space:nowrap">
+    <button class="btn sm" data-act="suggest" data-id="${ev.id}" title="Add common tasks for this event">✨ Suggested</button>
+    <button class="btn sm" data-act="evPdf" data-id="${ev.id}" title="PDF of this event's checklist">📄 PDF</button>
+    <button class="btn sm ghost" data-act="evUp" data-id="${ev.id}" ${i===0?'disabled':''} title="Move up">↑</button>
+    <button class="btn sm ghost" data-act="evDown" data-id="${ev.id}" ${i===S.events.length-1?'disabled':''} title="Move down">↓</button>
+    <button class="btn sm ghost danger" data-act="evDel" data-id="${ev.id}" title="Delete event">🗑</button></span>
+  </div>`;
+  if(!collapsed){
+   h+=shown.length?`<div class="tw" style="margin-top:10px"><table><thead><tr><th style="width:34px"></th><th>Task</th><th>Assigned to</th><th>Due</th><th>Status</th><th class="num">Payment</th><th>Payment status</th><th>Notes</th><th></th></tr></thead><tbody>
+   ${shown.map(t=>{const od=t.status!=='Complete'&&t.due&&t.due<t0;return `<tr class="${t.status==='Complete'?'ok':'pend'}">
+    <td><input type="checkbox" data-act="toggleTask" data-ev="${ev.id}" data-id="${t.id}" ${t.status==='Complete'?'checked':''} style="width:18px;height:18px;accent-color:var(--ok)" title="Mark complete"></td>
+    <td class="tdone" style="min-width:200px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'title',val:t.title,cls:'ttl',ph:'Task'})}</td>
+    <td style="min-width:130px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'assignee',val:t.assignee,list:'peopleList',ph:'Who?'})}</td>
+    <td style="min-width:135px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'due',val:t.due,type:'date',cls:od?'overdue':''})}</td>
+    <td style="min-width:115px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'status',val:t.status,opts:['Pending','Complete'],cls:stCls(t.status)})}</td>
+    <td style="min-width:100px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'amount',val:t.amount,type:'number',num:1,ph:'0.00'})}</td>
+    <td style="min-width:110px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'payStatus',val:t.payStatus||'N/A',opts:['N/A','Pending','Paid'],cls:stCls(t.payStatus)})}</td>
+    <td style="min-width:150px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'notes',val:t.notes,ph:'Notes'})}</td>
+    <td><button class="btn sm ghost danger noprint" data-act="taskDel" data-ev="${ev.id}" data-id="${t.id}" title="Delete task">✕</button></td></tr>`}).join('')}
+   </tbody></table></div>`:`<div class="empty small">${n?'No tasks match the current filter.':'No tasks yet — add one below or click ✨ Suggested.'}</div>`;
+   h+=`<div class="toolbar noprint" style="margin:10px 0 0"><input data-newtask="${ev.id}" placeholder="Add a task to ${esc(ev.name)} and press Enter" style="flex:1;min-width:220px"><input data-newassign="${ev.id}" list="peopleList" placeholder="Assign to" style="width:150px"><button class="btn" data-act="addTask" data-id="${ev.id}">＋ Add task</button></div>`;
+  }
+  h+=`</div>`;
+ });
+ return h;
+}
+
+/* ---------- Vendors ---------- */
+const vBalance=v=>v.status==='Paid'?0:Math.max(0,num(v.total)-num(v.deposit));
+function rVend(){
+ const V=S.vendors;
+ let h=`<div class="card"><div class="toolbar"><h2 style="margin:0">Vendors &amp; contracts</h2><span class="spacer"></span><span class="legend"><span class="pill ok">Paid in full</span><span class="pill pend">Balance pending</span></span><button class="btn sm noprint" data-act="pdf" data-preset="vendors">📄 PDF</button><button class="btn pri noprint" data-act="addVendor">＋ Add vendor</button></div>`;
+ h+=V.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Service</th><th>Event</th><th>Phone</th><th>Email</th><th class="num">Contract total</th><th class="num">Deposit paid</th><th class="num">Balance</th><th>Balance due</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>
+ ${V.map(v=>{const b=vBalance(v),od=v.status!=='Paid'&&v.due&&v.due<todayISO();const c=(f,o={})=>fld({col:'vendors',id:v.id,f,val:v[f],...o});
+  return `<tr class="${v.status==='Paid'?'ok':'pend'}"><td style="min-width:140px">${c('name',{ph:'Vendor name'})}</td><td style="min-width:130px">${c('service',{ph:'e.g. Caterer'})}</td>
+  <td style="min-width:120px">${c('eventId',{opts:[['','All / general'],...S.events.map(e=>[e.id,e.name])]})}</td>
+  <td style="min-width:120px">${c('phone',{type:'tel',ph:'Phone'})}</td><td style="min-width:150px">${c('email',{type:'email',ph:'Email'})}</td>
+  <td style="min-width:100px">${c('total',{type:'number',num:1})}</td><td style="min-width:100px">${c('deposit',{type:'number',num:1})}</td>
+  <td class="num"><b>${fmt(b)}</b></td><td style="min-width:135px">${c('due',{type:'date',cls:od?'overdue':''})}</td>
+  <td style="min-width:105px">${c('status',{opts:['Pending','Paid'],cls:stCls(v.status)})}</td><td style="min-width:150px">${c('notes',{ph:'Notes'})}</td>
+  <td><button class="btn sm ghost danger noprint" data-act="vDel" data-id="${v.id}">✕</button></td></tr>`}).join('')}
+ </tbody><tfoot><tr><td colspan="5">${V.length} vendor${V.length===1?'':'s'}</td><td class="num">${fmt(sum(V,'total'))}</td><td class="num">${fmt(sum(V,'deposit'))}</td><td class="num">${fmt(sum(V,vBalance))}</td><td colspan="4"></td></tr></tfoot></table></div>`
+ :`<div class="empty">Keep track of caterers, decorators, DJ/dhol, photographers, mehndi artists and more — with deposits, balances and due dates.</div>`;
+ return h+`</div>`;
+}
+
+/* ---------- Guests ---------- */
+const party=g=>Math.max(1,num(g.party)||1);
+function rGuest(){
+ const G=S.guests,q=F.gq.toLowerCase();
+ const rows=G.filter(g=>!q||[g.name,g.phone,g.side,g.notes].join(' ').toLowerCase().includes(q));
+ let h=`<div class="card"><h2>Headcount by event</h2><div class="hc">${S.events.map(e=>{const inv=G.filter(g=>(g.events||[]).includes(e.id)&&g.rsvp!=='Declined');
+   return `<div class="box"><span class="small muted">${esc(e.name)}</span><b>${sum(inv,party)}</b><span class="small"><span style="color:var(--ok)">${sum(inv.filter(g=>g.rsvp==='Attending'),party)} attending</span></span></div>`}).join('')}
+   <div class="box" style="background:#f6eef0"><span class="small muted">All guests</span><b>${sum(G.filter(g=>g.rsvp!=='Declined'),party)}</b><span class="small">${G.filter(g=>g.rsvp==='Declined').length} declined</span></div></div></div>`;
+ h+=`<div class="card"><div class="toolbar"><h2 style="margin:0">Guest list</h2><input data-flt="gq" data-key="flt|gq" placeholder="🔍 Search guests" value="${esc(F.gq)}" style="width:200px" class="noprint"><span class="spacer"></span><span class="legend"><span class="pill ok">Attending</span><span class="pill pend">Pending</span><span class="pill na">Declined</span></span><button class="btn sm noprint" data-act="pdf" data-preset="guests">📄 PDF</button><button class="btn pri noprint" data-act="addGuest">＋ Add guest / family</button></div>`;
+ h+=rows.length?`<div class="tw"><table><thead><tr><th>Name / family</th><th>Side</th><th class="num">Party size</th><th>Phone</th><th>Invited to (click to toggle)</th><th>RSVP</th><th>Notes</th><th></th></tr></thead><tbody>
+ ${rows.map(g=>{const c=(f,o={})=>fld({col:'guests',id:g.id,f,val:g[f],...o});
+  return `<tr class="${g.rsvp==='Attending'?'ok':g.rsvp==='Declined'?'bad':'pend'}"><td style="min-width:170px">${c('name',{ph:'Name or family'})}</td>
+  <td style="min-width:105px">${c('side',{opts:['','Bride','Groom','Both']})}</td><td style="width:80px">${c('party',{type:'number',num:1})}</td>
+  <td style="min-width:120px">${c('phone',{type:'tel',ph:'Phone'})}</td>
+  <td style="min-width:260px">${S.events.map(e=>`<button class="chip ${(g.events||[]).includes(e.id)?'on':''}" data-act="guestEv" data-id="${g.id}" data-ev="${e.id}">${esc(e.name)}</button>`).join('')}</td>
+  <td style="min-width:115px">${c('rsvp',{opts:['Pending','Attending','Declined'],cls:stCls(g.rsvp)})}</td><td style="min-width:140px">${c('notes',{ph:'Dietary, gift, etc.'})}</td>
+  <td><button class="btn sm ghost danger noprint" data-act="gDel" data-id="${g.id}">✕</button></td></tr>`}).join('')}
+ </tbody></table></div>`:`<div class="empty">${G.length?'No guests match your search.':'Add guests or families, choose which functions they\'re invited to, and track RSVPs. Headcounts above update automatically — handy for caterers.'}</div>`;
+ return h+`</div>`;
+}
+
+/* ---------- Settings ---------- */
+function rSet(){
+ const st=S.settings,s=(f,o={})=>fld({col:'settings',f,val:st[f],...o});
+ const g=(f,ph,type='text')=>`<input id="gh_${f}" type="${type}" value="${esc(GH[f]||'')}" placeholder="${esc(ph)}" autocomplete="off">`;
+ const lb=LS.get('lastBackup',0);
+ return `<div class="grid two">
+ <div class="card"><h2>Wedding details</h2><div class="formgrid">
+  <label class="f" style="grid-column:1/-1">Couple's names ${s('names',{ph:'e.g. Simran & Arjun'})}</label>
+  <label class="f">Wedding date ${s('date',{type:'date'})}</label>
+  <label class="f">Total budget ${s('budget',{type:'number',num:1})}</label>
+  <label class="f">Currency ${s('currency',{opts:['USD','CAD','INR','GBP','EUR','AUD']})}</label></div></div>
+ <div class="card"><h2>Family &amp; helpers</h2><p class="small muted" style="margin-top:0">These names appear as suggestions for "Bought by" and "Assigned to". New names typed there are added automatically.</p>
+  <div>${S.people.map(p=>`<span class="pchip">${esc(p.name)}<button data-act="rmPerson" data-id="${p.id}" title="Remove">×</button></span>`).join('')||'<span class="muted small">No one added yet.</span>'}</div>
+  <div class="toolbar" style="margin-top:10px"><input id="newPerson" placeholder="Name (e.g. Mom, Uncle Harjit)" style="flex:1"><button class="btn" data-act="addPerson">＋ Add</button></div></div>
+ </div>
+
+ <div class="card" id="pcCard"><h2>🔒 Family passcode</h2>
+  ${LS.get('pclock',null)?`<div class="note ok" style="margin-bottom:12px">✓ The planner is protected with a passcode${PC.salt&&ghReady()?' and the shared data on GitHub is <b>encrypted</b> — anyone looking at the repository only sees scrambled text':''}.${LS.get('pcode',null)?' This device remembers the passcode.':' This device asks for it each time the browser is reopened.'}</div>`
+   :`<p class="small muted" style="margin-top:0">Set one passcode for the family. Everyone is asked for it when they open the planner, and the shared data and receipts saved to GitHub are <b>encrypted</b> with it (AES-256), so they can't be read by browsing the repository.</p>`}
+  <div class="formgrid">
+   <label class="f">${LS.get('pclock',null)?'New passcode':'Passcode'} <input type="password" id="pc_new" autocomplete="new-password" placeholder="At least 6 characters"></label>
+   <label class="f">Confirm passcode <input type="password" id="pc_conf" autocomplete="new-password"></label>
+   <label class="ck small" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="pc_rem" ${LS.get('pcode',null)?'checked':''}> Remember on this device</label>
+  </div>
+  <div class="toolbar" style="margin-top:12px"><button class="btn pri" data-act="pcSet">${LS.get('pclock',null)?'Change passcode':'Set passcode'}</button>
+   ${LS.get('pclock',null)?`<button class="btn" data-act="lockNow">🔒 Lock now</button><span class="spacer"></span><button class="btn danger" data-act="pcRemove">Remove passcode</button>`:''}</div>
+  <p class="small muted" style="margin-bottom:0">⚠ Write the passcode down somewhere safe — it can't be recovered. If it's lost, the encrypted copy on GitHub can't be opened (your downloaded backups still can). Share it with family by text or in person, not in the repository.</p>
+ </div>
+
+ <div class="card" id="syncCard"><h2>☁ Shared sync with family (GitHub)</h2>
+  ${ghReady()?(lastErr?`<div class="note err" style="margin-bottom:12px">⚠ <b>Sync problem:</b> ${esc(lastErr)}</div>`:`<div class="note ok" style="margin-bottom:12px">✓ Connected to <b>${esc(GH.owner)}/${esc(GH.repo)}</b>${lastSync?` · last synced ${fmtTime(lastSync)}`:''}. Changes save to GitHub a few seconds after you make them, and everyone's changes are merged together.</div>`)
+   :`<p class="small muted" style="margin-top:0">When connected, everyone's edits are merged into one shared file in a GitHub repository, so the whole family sees the same expenses, checklists, vendors and guests. Each browser also keeps its own copy for offline use.</p>`}
+  <div class="formgrid">
+   <label class="f">Your name (shown in GitHub history) ${g('name','e.g. Singh')}</label>
+   <label class="f">GitHub owner (user or org) ${g('owner','e.g. your-username')}</label>
+   <label class="f">Data repository ${g('repo','e.g. wedding-data')}</label>
+   <label class="f">Branch ${g('branch','main')}</label>
+   <label class="f">Data file path ${g('path','data/planner.json')}</label>
+   <label class="f">Receipts folder ${g('rdir','data/receipts')}</label>
+   <label class="f" style="grid-column:span 2">Access token (stays on this device only) ${g('token','github_pat_…','password')}</label>
+  </div>
+  <div class="toolbar" style="margin-top:12px">
+   <button class="btn pri" data-act="ghConnect">${ghReady()?'Save & sync now':'Connect & sync'}</button>
+   ${ghReady()?`<button class="btn" data-act="syncNow">⟳ Sync now</button><button class="btn danger" data-act="ghDisconnect">Disconnect this device</button>`:''}
+   <span class="spacer"></span>
+   <button class="btn" data-act="ghLink" title="Copies a link with the repository settings (not the token) for family members">🔗 Copy setup link for family</button>
+  </div>
+  <details style="margin-top:10px"><summary class="small" style="cursor:pointer;color:var(--accent)"><b>How to set it up (one time, about 5 minutes)</b></summary>
+   <ol class="steps">
+    <li><b>Create a separate <u>private</u> repository</b> for the data, e.g. <code>wedding-data</code> (GitHub → New repository → Private). Keep the planner page itself in your public GitHub Pages repository — <b>don't put the data in a public repository</b>, or anyone could read receipts and payments.</li>
+    <li><b>Create an access token:</b> GitHub → Settings → Developer settings → Personal access tokens → <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Fine-grained tokens → Generate new token</a>. Choose <i>Only select repositories</i> → <code>wedding-data</code>, then under Repository permissions set <b>Contents: Read and write</b>. Pick an expiration date after the wedding.</li>
+    <li>Fill in the owner, repository and token above and click <b>Connect &amp; sync</b>. Your current data is uploaded and becomes the shared copy.</li>
+    <li><b>Family members:</b> each person can have their own GitHub account (add them under the data repository → Settings → Collaborators, and they make their own token the same way), or you can give trusted family a token you created. Click <b>Copy setup link</b> and send it to them — they open it, paste the token, and connect.</li>
+   </ol>
+   <p class="small muted">How merging works: every expense, task, vendor and guest is saved separately with the time it was last changed. When two people edit different things, both changes are kept. If two people change the <i>same</i> item, the most recent edit wins. Deleted items stay deleted for everyone. Every save is also a commit in GitHub, so the repository's history is a complete audit trail you can roll back.</p>
+  </details>
+ </div>
+
+ <div class="card"><div class="toolbar"><h2 style="margin:0">Expense categories &amp; budgets</h2><span class="spacer"></span><button class="btn" data-act="addCat">＋ Add category</button></div>
+  <div class="tw"><table><thead><tr><th>Category</th><th class="num" style="width:160px">Budget</th><th class="num">Spent</th><th class="num">Left</th><th></th></tr></thead><tbody>
+  ${S.categories.map(c=>{const sp=sum(S.expenses.filter(e=>e.category===c.name),'cost'),b=num(c.budget);return `<tr><td>${fld({col:'categories',id:c.id,f:'name',val:c.name})}</td><td>${fld({col:'categories',id:c.id,f:'budget',val:c.budget,type:'number',num:1})}</td><td class="num">${fmt(sp)}</td><td class="num ${b&&sp>b?'overdue':''}">${b?fmt(b-sp):'—'}</td><td><button class="btn sm ghost danger" data-act="catDel" data-id="${c.id}">✕</button></td></tr>`}).join('')}
+  </tbody><tfoot><tr><td>Sum of category budgets</td><td class="num">${fmt(sum(S.categories,'budget'))}</td><td class="num">${fmt(sum(S.expenses,'cost'))}</td><td colspan="2" class="small muted">${num(st.budget)&&Math.abs(sum(S.categories,'budget')-num(st.budget))>0.5?`Total budget is ${fmt(num(st.budget))}`:''}</td></tr></tfoot></table></div></div>
+
+ <div class="card"><h2>Backup, export &amp; reset</h2>
+  <p class="small muted" style="margin-top:0">${storageMode==='idb'?'This device keeps its own copy of everything, including receipt images.':storageMode==='local'?'This device keeps a copy in browser storage. Large receipts may hit browser limits — keep a backup.':'⚠ This browser isn\'t letting the page save data. Use Backup or Shared sync.'}
+   ${persisted?' Storage is marked <b>persistent</b>, so the browser won\'t clear it to free up space.':' The browser may clear this storage if the device runs low on space, or (Safari) after 7 days without a visit — keep a backup or use Shared sync.'}
+   Last backup on this device: <b>${lb?fmtTime(lb):'never'}</b>.</p>
+  <div class="toolbar"><button class="btn pri" data-act="backup">⬇ Download backup (.json)</button><button class="btn" data-act="restore">⬆ Restore from backup</button><button class="btn" data-act="csv">⬇ Expenses CSV (Excel)</button><span class="spacer"></span><button class="btn danger" data-act="reset">Reset this device</button></div></div>`;
+}
+
+/* ================= PDF / print reports ================= */
+let pdfOpts={sections:{summary:true},events:null,pendingOnly:false,who:'',expStatus:'',expFilters:false,receipts:false};
+function openPdf(preset){
+ const sec={summary:false,checklist:false,expenses:false,reimb:false,vendors:false,guests:false};
+ if(preset==='summary'){sec.summary=true;sec.reimb=true}else sec[preset]=true;
+ pdfOpts={...pdfOpts,sections:sec,events:S.events.map(e=>e.id),expFilters:preset==='expenses'&&!!(F.q||F.cat||F.ev||F.who||F.st),pendingOnly:preset==='checklist'?F.ts==='Pending':false,who:preset==='checklist'?F.ta:''};
+ renderPdfModal();$('#pdfModal').classList.add('show')}
+function renderPdfModal(){
+ const o=pdfOpts,ck=(k,l,h)=>`<label class="ck"><input type="checkbox" data-pdfsec="${k}" ${o.sections[k]?'checked':''}> <b>${l}</b>${h?` <span class="small muted">— ${h}</span>`:''}</label>`;
+ const assignees=[...new Set(S.events.flatMap(e=>e.tasks.map(t=>t.assignee)).filter(Boolean))].sort();
+ $('#pdfBody').innerHTML=`<p class="small muted" style="margin-top:0">Pick what to include, then click <b>Create PDF</b>. In the print window choose <b>Save as PDF</b> as the destination (or pick a printer).</p>
+ <div class="opt">${ck('summary','Budget summary','totals, budget by category, events at a glance')}</div>
+ <div class="opt">${ck('checklist','Event checklists')}
+  <div class="sub2">${S.events.map(e=>`<button class="chip ${o.events.includes(e.id)?'on':''}" data-act="pdfEv" data-id="${e.id}">${esc(e.name)}</button>`).join('')}</div>
+  <div class="sub2"><label class="ck"><input type="checkbox" id="pdf_pend" ${o.pendingOnly?'checked':''}> Pending tasks only</label>
+   <label>Assigned to <select id="pdf_who"><option value="">Anyone</option>${assignees.map(a=>`<option ${o.who===a?'selected':''}>${esc(a)}</option>`).join('')}</select></label></div></div>
+ <div class="opt">${ck('expenses','Expense list')}
+  <div class="sub2"><label>Status <select id="pdf_expst"><option value="">All</option><option value="Pending" ${o.expStatus==='Pending'?'selected':''}>Pending (not yet paid back)</option><option value="Paid" ${o.expStatus==='Paid'?'selected':''}>Paid</option></select></label>
+   <label class="ck"><input type="checkbox" id="pdf_expf" ${o.expFilters?'checked':''}> Use the filters set on the Expenses tab</label>
+   <label class="ck"><input type="checkbox" id="pdf_rc" ${o.receipts?'checked':''}> Attach receipt images (one per page)</label></div></div>
+ <div class="opt">${ck('reimb','Reimbursements by person','who is still owed money')}</div>
+ <div class="opt">${ck('vendors','Vendors & balances')}</div>
+ <div class="opt">${ck('guests','Guest list & headcount')}</div>
+ <div class="toolbar" style="margin:14px 0 0"><span class="spacer"></span><button class="btn" data-act="closePdf">Cancel</button><button class="btn pri" data-act="makePdf">📄 Create PDF</button></div>`}
+function readPdfModal(){
+ document.querySelectorAll('[data-pdfsec]').forEach(i=>pdfOpts.sections[i.dataset.pdfsec]=i.checked);
+ pdfOpts.pendingOnly=$('#pdf_pend').checked;pdfOpts.who=$('#pdf_who').value;pdfOpts.expStatus=$('#pdf_expst').value;pdfOpts.expFilters=$('#pdf_expf').checked;pdfOpts.receipts=$('#pdf_rc').checked}
+const tag=(v)=>v==='Paid'||v==='Complete'||v==='Attending'?`<span class="tag ok">${v==='Complete'?'✓ Complete':v}</span>`:v==='Pending'?`<span class="tag pend">Pending</span>`:`<span class="tag na">${esc(v||'—')}</span>`;
+function repHead(title){return `<div class="rh"><div><div class="rt">${esc(S.settings.names||'Our Wedding')}</div><div class="rs">${S.settings.date?fmtDate(S.settings.date)+' · ':''}${esc(title)}</div></div><div class="rs">Printed ${fmtDate(todayISO())}</div></div>`}
+function repSummary(){const X=stats(),{cats,uncat}=catRows();
+ return `<h2>Budget summary</h2><div class="kpis">
+  <div><span>Total budget</span><b>${fmt(X.budget)}</b></div><div><span>Spent (logged)</span><b>${fmt(X.spent)}</b></div><div><span>Remaining</span><b>${fmt(X.remaining)}</b></div>
+  <div><span>Owed back to buyers</span><b>${fmt(X.owed)}</b></div><div><span>Tasks complete</span><b>${X.done} / ${X.tasks.length}</b></div><div><span>Payments pending</span><b>${fmt(X.tPend+X.vBal)}</b></div></div>
+  <h3>Budget by category</h3><table><thead><tr><th>Category</th><th style="text-align:right">Budget</th><th style="text-align:right">Spent</th><th style="text-align:right">Left</th></tr></thead><tbody>
+  ${cats.map(c=>{const b=num(c.budget);return `<tr class="${b&&c.spent>b?'pend':''}"><td>${esc(c.name)}</td><td class="num">${b?fmt(b):'—'}</td><td class="num">${fmt(c.spent)}</td><td class="num">${b?fmt(b-c.spent):'—'}</td></tr>`}).join('')}
+  ${uncat?`<tr><td>Uncategorized</td><td class="num">—</td><td class="num">${fmt(uncat)}</td><td></td></tr>`:''}
+  </tbody><tfoot><tr><td>Total</td><td class="num">${fmt(sum(S.categories,'budget'))}</td><td class="num">${fmt(X.spent)}</td><td></td></tr></tfoot></table>
+  <h3>Events at a glance</h3><table><thead><tr><th>Event</th><th>Date</th><th>Venue</th><th style="text-align:right">Tasks done</th><th style="text-align:right">Expenses</th><th style="text-align:right">Pending payments</th></tr></thead><tbody>
+  ${S.events.map(e=>{const n=e.tasks.length,dn=e.tasks.filter(t=>t.status==='Complete').length;return `<tr class="${n&&dn===n?'ok':n?'pend':''}"><td><b>${esc(e.name)}</b></td><td>${fmtDate(e.date)}</td><td>${esc(e.venue||'')}</td><td class="num">${dn} / ${n}</td><td class="num">${fmt(sum(S.expenses.filter(x=>x.eventId===e.id),'cost'))}</td><td class="num">${fmt(sum(e.tasks.filter(t=>t.payStatus==='Pending'),'amount'))}</td></tr>`}).join('')}</tbody></table>`}
+function repChecklist(o){
+ const evs=S.events.filter(e=>o.events.includes(e.id));
+ return `<h2>Event checklist${o.pendingOnly?' — pending tasks':''}${o.who?' — '+esc(o.who):''}</h2>`+evs.map(e=>{
+  const ts=e.tasks.filter(t=>(!o.pendingOnly||t.status!=='Complete')&&(!o.who||t.assignee===o.who));
+  const n=e.tasks.length,dn=e.tasks.filter(t=>t.status==='Complete').length;
+  return `<h3>${esc(e.name)} <small>${e.date?fmtDate(e.date):''}${e.venue?' · '+esc(e.venue):''} · ${dn} of ${n} complete</small></h3>
+  ${ts.length?`<table><thead><tr><th style="width:18px"></th><th>Task</th><th>Assigned to</th><th>Due</th><th>Status</th><th style="text-align:right">Payment</th><th>Payment status</th><th>Notes</th></tr></thead><tbody>
+  ${ts.map(t=>`<tr class="${t.status==='Complete'?'ok':'pend'}"><td class="box">${t.status==='Complete'?'☑':'☐'}</td><td>${esc(t.title)}</td><td>${esc(t.assignee||'')}</td><td>${t.due?fmtDate(t.due):''}</td><td>${tag(t.status)}</td><td class="num">${num(t.amount)?fmt(num(t.amount)):''}</td><td>${t.payStatus&&t.payStatus!=='N/A'?tag(t.payStatus):''}</td><td>${esc(t.notes||'')}</td></tr>`).join('')}
+  </tbody></table>`:`<p class="rs">No ${o.pendingOnly?'pending ':''}tasks${o.who?' for '+esc(o.who):''}.</p>`}`}).join('')}
+function repExpenses(o){
+ let rows=o.expFilters?filteredExpenses():[...S.expenses].sort((a,b)=>(b.dateBought||'').localeCompare(a.dateBought||''));
+ if(o.expStatus)rows=rows.filter(e=>e.status===o.expStatus);
+ return `<h2>Expenses${o.expStatus?' — '+o.expStatus.toLowerCase():''}</h2><table><thead><tr><th>Date bought</th><th>Receipt / description</th><th>Category</th><th>Event</th><th>Bought by</th><th style="text-align:right">Cost</th><th>Status</th><th>Paid via</th><th>Date paid</th></tr></thead><tbody>
+ ${rows.map(e=>`<tr class="${e.status==='Paid'?'ok':'pend'}"><td>${fmtDate(e.dateBought)}</td><td><b>${esc(e.receiptName||'')}</b>${e.desc?'<br>'+esc(e.desc):''}${e.receipt?' 🧾':''}</td><td>${esc(e.category||'')}</td><td>${esc(evName(e.eventId)||'General')}</td><td>${esc(e.boughtBy||'')}</td><td class="num">${fmt(num(e.cost))}</td><td>${tag(e.status)}</td><td>${esc(e.method||'')}</td><td>${e.datePaid?fmtDate(e.datePaid):''}</td></tr>`).join('')||'<tr><td colspan="9">No expenses.</td></tr>'}
+ </tbody><tfoot><tr><td colspan="5">${rows.length} expenses · Paid ${fmt(sum(rows.filter(e=>e.status==='Paid'),'cost'))} · Pending ${fmt(sum(rows.filter(e=>e.status!=='Paid'),'cost'))}</td><td class="num">${fmt(sum(rows,'cost'))}</td><td colspan="3"></td></tr></tfoot></table>`
+ +(o.receipts?rows.filter(e=>e.receipt).map(e=>{const d=rcData(e);return `<div class="rcpt"><p><b>${esc(e.receiptName||e.receipt.name)}</b> · ${fmt(num(e.cost))} · ${fmtDate(e.dateBought)} · ${esc(e.boughtBy||'')}</p>${d&&e.receipt.type.startsWith('image/')?`<img src="${d}">`:`<p class="rs">${e.receipt.type==='application/pdf'?'PDF receipt — open it from the Expenses tab to print separately.':'Receipt not downloaded to this device yet.'}</p>`}</div>`}).join(''):'')}
+function repReimb(){const P=peopleRows();
+ return `<h2>Reimbursements by person</h2><table><thead><tr><th>Bought by</th><th style="text-align:right"># items</th><th style="text-align:right">Total spent</th><th style="text-align:right">Paid back</th><th style="text-align:right">Still owed</th><th>Unpaid items</th></tr></thead><tbody>
+ ${P.map(([p,v])=>{const o=v.t-v.r,items=S.expenses.filter(e=>(e.boughtBy||'(not set)')===p&&e.status!=='Paid');return `<tr class="${o>0.004?'pend':'ok'}"><td><b>${esc(p)}</b></td><td class="num">${v.n}</td><td class="num">${fmt(v.t)}</td><td class="num">${fmt(v.r)}</td><td class="num"><b>${fmt(o)}</b></td><td>${items.map(e=>`${esc(e.receiptName||e.desc||'Item')} (${fmt(num(e.cost))})`).join('; ')}</td></tr>`}).join('')||'<tr><td colspan="6">No expenses yet.</td></tr>'}
+ </tbody></table>`}
+function repVendors(){const V=S.vendors;
+ return `<h2>Vendors &amp; balances</h2><table><thead><tr><th>Vendor</th><th>Service</th><th>Event</th><th>Contact</th><th style="text-align:right">Total</th><th style="text-align:right">Deposit</th><th style="text-align:right">Balance</th><th>Due</th><th>Status</th><th>Notes</th></tr></thead><tbody>
+ ${V.map(v=>`<tr class="${v.status==='Paid'?'ok':'pend'}"><td><b>${esc(v.name)}</b></td><td>${esc(v.service||'')}</td><td>${esc(evName(v.eventId)||'All')}</td><td>${esc(v.phone||'')}${v.email?'<br>'+esc(v.email):''}</td><td class="num">${fmt(num(v.total))}</td><td class="num">${fmt(num(v.deposit))}</td><td class="num"><b>${fmt(vBalance(v))}</b></td><td>${v.due?fmtDate(v.due):''}</td><td>${tag(v.status)}</td><td>${esc(v.notes||'')}</td></tr>`).join('')||'<tr><td colspan="10">No vendors yet.</td></tr>'}
+ </tbody><tfoot><tr><td colspan="4">${V.length} vendors</td><td class="num">${fmt(sum(V,'total'))}</td><td class="num">${fmt(sum(V,'deposit'))}</td><td class="num">${fmt(sum(V,vBalance))}</td><td colspan="3"></td></tr></tfoot></table>`}
+function repGuests(){const G=[...S.guests].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+ return `<h2>Guest list &amp; headcount</h2><table><thead><tr>${S.events.map(e=>`<th style="text-align:center">${esc(e.name)}</th>`).join('')}</tr></thead><tbody><tr>${S.events.map(e=>{const inv=S.guests.filter(g=>(g.events||[]).includes(e.id)&&g.rsvp!=='Declined');return `<td style="text-align:center"><b>${sum(inv,party)}</b> invited<br>${sum(inv.filter(g=>g.rsvp==='Attending'),party)} attending</td>`}).join('')}</tr></tbody></table>
+ <table><thead><tr><th>Name / family</th><th>Side</th><th style="text-align:right">Party</th><th>Phone</th><th>Invited to</th><th>RSVP</th><th>Notes</th></tr></thead><tbody>
+ ${G.map(g=>`<tr class="${g.rsvp==='Attending'?'ok':g.rsvp==='Declined'?'bad':'pend'}"><td><b>${esc(g.name)}</b></td><td>${esc(g.side||'')}</td><td class="num">${party(g)}</td><td>${esc(g.phone||'')}</td><td>${(g.events||[]).map(evName).filter(Boolean).map(esc).join(', ')}</td><td>${tag(g.rsvp||'Pending')}</td><td>${esc(g.notes||'')}</td></tr>`).join('')||'<tr><td colspan="7">No guests yet.</td></tr>'}
+ </tbody><tfoot><tr><td colspan="2">${G.length} entries</td><td class="num">${sum(G.filter(g=>g.rsvp!=='Declined'),party)}</td><td colspan="4">people (excluding declined)</td></tr></tfoot></table>`}
+async function printReport(o,label){
+ const parts=[];const s=o.sections;
+ if(s.summary)parts.push(repSummary());if(s.checklist)parts.push(repChecklist(o));if(s.expenses)parts.push(repExpenses(o));
+ if(s.reimb)parts.push(repReimb());if(s.vendors)parts.push(repVendors());if(s.guests)parts.push(repGuests());
+ if(!parts.length){alert('Choose at least one section.');return}
+ const rep=$('#report');rep.innerHTML=parts.map((p,i)=>`<section class="sec ${i?'':'first'}">${repHead(label)}${p}</section>`).join('');
+ await Promise.all([...rep.querySelectorAll('img')].map(i=>i.decode?i.decode().catch(()=>{}):null));
+ const oldTitle=document.title;document.title=`${(S.settings.names||'Wedding').replace(/[\\/:*?"<>|&]/g,' ').replace(/\s+/g,' ').trim()} - ${label} - ${todayISO()}`;
+ document.body.classList.add('rep');
+ const done=()=>{document.body.classList.remove('rep');document.title=oldTitle;rep.innerHTML='';window.removeEventListener('afterprint',done)};
+ window.addEventListener('afterprint',done);
+ setTimeout(()=>window.print(),50)}
+function pdfLabel(o){const s=Object.keys(o.sections).filter(k=>o.sections[k]);
+ const names={summary:'Budget Summary',checklist:'Checklist',expenses:'Expenses',reimb:'Reimbursements',vendors:'Vendors',guests:'Guest List'};
+ if(s.length===1&&s[0]==='checklist'&&o.events.length===1)return evName(o.events[0])+' Checklist';
+ return s.length>2?'Wedding Report':s.map(k=>names[k]).join(' & ')}
+
+/* ================= files / receipts ================= */
+function readAsDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(file)})}
+async function compressImage(file){
+ const url=URL.createObjectURL(file);
+ try{const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+  const max=1600,sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+  const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+  return c.toDataURL('image/jpeg',0.82)}finally{URL.revokeObjectURL(url)}}
+async function readReceipt(file){
+ const isImg=file.type.startsWith('image/'),isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
+ if(!isImg&&!isPdf){alert('Please use a photo (JPG/PNG) or a PDF receipt.');return null}
+ let data,type=isPdf?'application/pdf':file.type;
+ if(isImg&&file.size>250*1024&&file.type!=='image/gif'){try{data=await compressImage(file);type='image/jpeg'}catch(e){data=null}}
+ if(!data){if(file.size>12*1024*1024&&!confirm('This file is large ('+Math.round(file.size/1048576)+' MB) and may slow things down. Attach anyway?'))return null;data=await readAsDataURL(file)}
+ return{meta:{name:file.name,type,size:Math.round(data.length*0.75),rv:uid()},data}}
+async function attach(target,file){
+ const r=await readReceipt(file);if(!r)return;
+ if(target==='draft'){draft.receipt=r.meta;draftData=r.data;if(!draft.receiptName)draft.receiptName=file.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ')}
+ else{const x=S.expenses.find(e=>e.id===target);if(x){x.receipt=r.meta;RC[x.id]={rv:r.meta.rv,data:r.data};await saveRC(x.id);if(!x.receiptName)x.receiptName=file.name.replace(/\.[^.]+$/,'');touch(x);save()}}
+ render()}
+function pickFile(target){const i=document.createElement('input');i.type='file';i.accept='image/*,application/pdf';i.onchange=()=>i.files[0]&&attach(target,i.files[0]);i.click()}
+let modalUrl=null;
+async function viewReceipt(id){
+ const e=S.expenses.find(x=>x.id===id);if(!e||!e.receipt)return;const r=e.receipt;
+ let data=rcData(e);
+ if(!data){if(r.path&&ghReady()){try{setSaveInd('Downloading receipt…');await downloadReceipt(e);data=rcData(e);setSaveInd('')}catch(err){alert('Could not download receipt: '+err.message);return}}
+  else{alert('This receipt is stored on another device. Connect Shared sync in Settings to download it.');return}}
+ $('#mTitle').textContent=(e.receiptName||r.name)+(e.cost?' · '+fmt(num(e.cost)):'');
+ const blob=await (await fetch(data)).blob();if(modalUrl)URL.revokeObjectURL(modalUrl);modalUrl=URL.createObjectURL(blob);
+ $('#mDl').href=modalUrl;$('#mDl').download=r.name||'receipt';
+ $('#mBody').innerHTML=r.type.startsWith('image/')?`<img src="${modalUrl}" alt="">`:`<iframe src="${modalUrl}"></iframe>`;
+ $('#modal').classList.add('show');render()}
+function download(name,text,type){const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function exportCSV(){
+ const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+ const head=['Receipt name','Category','Event','Description','Cost','Bought by','Date bought','Status','Paid via','Date paid to buyer','Receipt attached'];
+ const rows=S.expenses.map(e=>[e.receiptName,e.category,evName(e.eventId)||'General',e.desc,num(e.cost).toFixed(2),e.boughtBy,e.dateBought,e.status,e.method,e.datePaid,e.receipt?'Yes':'No']);
+ download(`wedding-expenses-${todayISO()}.csv`,'﻿'+[head,...rows].map(r=>r.map(q).join(',')).join('\r\n'),'text/csv')}
+
+/* ================= event handlers ================= */
+document.addEventListener('change',e=>{
+ const el=e.target;
+ if(el.dataset.f){const item=findItem(el.dataset.col,el.dataset.id,el.dataset.ev);if(!item)return;
+  let v=el.type==='checkbox'?el.checked:el.value;if(el.dataset.num)v=num(v);const f=el.dataset.f,old=item[f];if(old===v)return;item[f]=v;touch(item);
+  if(el.dataset.col==='categories'&&f==='name')S.expenses.forEach(x=>{if(x.category===old){x.category=v;touch(x)}});
+  if(el.dataset.col==='expenses'&&f==='status'&&v==='Paid'&&!item.datePaid)item.datePaid=todayISO();
+  if(f==='assignee'||f==='boughtBy')addPerson(v);
+  save();rerenderSoon();return}
+ if(el.dataset.d){draft[el.dataset.d]=el.value;if(el.dataset.d==='status'&&el.value==='Paid'&&!draft.datePaid){draft.datePaid=todayISO();render()}return}
+ if(el.dataset.flt){F[el.dataset.flt]=el.value;rerenderSoon()}
+});
+document.addEventListener('input',e=>{const el=e.target;
+ if(el.dataset.d)draft[el.dataset.d]=el.value;
+ else if(el.dataset.flt&&el.tagName==='INPUT'){F[el.dataset.flt]=el.value;rerenderSoon()}});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){act('closeModal');act('closePdf');return}
+ if(e.key!=='Enter')return;const el=e.target;
+ if(el.dataset.newtask!==undefined||el.dataset.newassign!==undefined){e.preventDefault();addTask(el.dataset.newtask||el.dataset.newassign)}
+ else if(el.id==='newEvent'){e.preventDefault();act('addEvent')}
+ else if(el.id==='newPerson'){e.preventDefault();act('addPerson')}
+ else if(el.dataset.f&&el.tagName==='INPUT')el.blur()});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')act('closeModal')});
+$('#pdfModal').addEventListener('click',e=>{if(e.target.id==='pdfModal')act('closePdf')});
+
+function newTask(title,who){const t={id:uid(),title,assignee:who||'',due:'',status:'Pending',amount:'',payStatus:'N/A',notes:'',c:Date.now()};touch(t);return t}
+function addTask(evId){const ev=S.events.find(x=>x.id===evId);if(!ev)return;
+ const ti=document.querySelector(`[data-newtask="${evId}"]`),ai=document.querySelector(`[data-newassign="${evId}"]`);
+ const title=(ti&&ti.value||'').trim();if(!title){ti&&ti.focus();return}
+ const who=(ai&&ai.value||'').trim();addPerson(who);
+ ev.tasks.push(newTask(title,who));save();render();
+ const n=document.querySelector(`[data-newtask="${evId}"]`);if(n)n.focus()}
+function moveEvent(id,d){const i=S.events.findIndex(e=>e.id===id),j=i+d;if(i<0||j<0||j>=S.events.length)return;
+ S.events.forEach((e,k)=>{if(e.ord!==k){e.ord=k;touch(e)}});
+ const a=S.events[i],b=S.events[j];[a.ord,b.ord]=[b.ord,a.ord];touch(a);touch(b);S.events.sort((x,y)=>x.ord-y.ord);save();render()}
+function reuploadReceipts(){S.expenses.forEach(e=>{if(e.receipt&&rcData(e)){if(e.receipt.path)e.receipt.oldPath=e.receipt.path;e.receipt.path='';touch(e)}})}
+async function setPasscode(){
+ if(!hasCrypto()){alert('This browser can\'t use passcode encryption here. Open the planner from its https:// GitHub Pages link.');return}
+ const a=$('#pc_new').value,b=$('#pc_conf').value,rem=$('#pc_rem').checked;
+ if(a.length<6){alert('Use at least 6 characters.');return}if(a!==b){alert('The two passcodes don\'t match.');return}
+ const had=!!LS.get('pclock',null);
+ if(ghReady()){setSaveInd('Fetching receipts…');await downloadMissing()}
+ const old=PC.code||'';
+ PC.code=a;PC.salt=newSalt();LS.set('pcsalt',PC.salt);storeCode(a,rem);await makeCheck(a);
+ if(ghReady()){LS.set('pcpending',{mode:'set',old});reuploadReceipts();save();await sync()}
+ render();alert(had?'Passcode changed. Family members will be asked for the new passcode next time they open the planner.':'Passcode set.'+(ghReady()?' The shared data on GitHub is now encrypted. Family members will be asked for the passcode next time they open the planner.':' If you connect Shared sync later, the data on GitHub will be encrypted with it.'))}
+async function removePasscode(){
+ if(!confirm('Remove the passcode? The planner will open without a passcode on every device'+(ghReady()?', and the shared data on GitHub will be saved UNENCRYPTED again (readable by anyone who can see the repository).':'.')))return;
+ if(ghReady()){setSaveInd('Fetching receipts…');await downloadMissing()}
+ const old=PC.code||'';PC.code=null;PC.salt=null;['pclock','pcode','pcsalt'].forEach(k=>LS.del(k));storeCode(null);
+ if(ghReady()){LS.set('pcpending',{mode:'remove',old});reuploadReceipts();save();await sync()}
+ render()}
+function readGhForm(){['name','owner','repo','branch','path','rdir','token'].forEach(k=>{const i=$('#gh_'+k);if(i)GH[k]=i.value.trim()});
+ if(!GH.path)GH.path='data/planner.json';if(!GH.rdir)GH.rdir='data/receipts';LS.set('gh',GH)}
+
+function act(a,el){const id=el&&el.dataset.id;
+ switch(a){
+ case 'tab':tab=el.dataset.tab;render();window.scrollTo(0,0);break;
+ case 'closeModal':$('#modal').classList.remove('show');$('#mBody').innerHTML='';break;
+ case 'gotoEvent':{tab='checklist';COL.delete(id);LS.set('collapsed',[...COL]);render();const n=document.getElementById('ev-'+id);n&&n.scrollIntoView({behavior:'smooth',block:'start'});break}
+ // pdf
+ case 'pdf':openPdf(el.dataset.preset||'summary');break;
+ case 'closePdf':$('#pdfModal').classList.remove('show');break;
+ case 'pdfEv':{readPdfModal();const s=new Set(pdfOpts.events);s.has(id)?s.delete(id):s.add(id);pdfOpts.events=S.events.map(e=>e.id).filter(x=>s.has(x));pdfOpts.sections.checklist=true;renderPdfModal();break}
+ case 'makePdf':readPdfModal();$('#pdfModal').classList.remove('show');printReport(pdfOpts,pdfLabel(pdfOpts));break;
+ case 'evPdf':{const o={...pdfOpts,sections:{checklist:true},events:[id],pendingOnly:false,who:''};printReport(o,evName(id)+' Checklist');break}
+ // expenses
+ case 'pick':pickFile(id);break;
+ case 'view':viewReceipt(id);break;
+ case 'rmDraftReceipt':draft.receipt=null;draftData=null;render();break;
+ case 'exSave':{if(!draft.receiptName.trim()&&!draft.desc.trim()){alert('Add a receipt name or a brief description.');return}
+  if(!(num(draft.cost)>0)&&!confirm('No cost entered. Save anyway?'))return;
+  const rec={...draft,cost:num(draft.cost)};addPerson(rec.boughtBy);
+  if(rec.category&&!S.categories.some(c=>c.name===rec.category)){const c={id:'cat-'+slug(rec.category),name:rec.category,budget:0,c:Date.now()};touch(c);S.categories.push(c)}
+  let x;
+  if(editingExp){x=S.expenses.find(e=>e.id===editingExp);if(x){const keepC=x.c;Object.assign(x,rec);x.c=keepC}}
+  else{x={id:uid(),c:Date.now(),...rec};S.expenses.push(x)}
+  if(x){touch(x);if(x.receipt&&draftData&&(!RC[x.id]||RC[x.id].rv!==x.receipt.rv)){RC[x.id]={rv:x.receipt.rv,data:draftData};saveRC(x.id)}
+   if(!x.receipt&&RC[x.id]){delete RC[x.id];saveRC(x.id)}}
+  editingExp=null;draft=newDraft(rec);draftData=null;save();render();break}
+ case 'exClear':editingExp=null;draft=newDraft();draftData=null;render();break;
+ case 'exEdit':{const x=S.expenses.find(e=>e.id===id);if(!x)return;editingExp=id;const{u,by,c,...rest}=x;draft={...newDraft(),...rest,cost:x.cost===0?'':String(x.cost)};draftData=rcData(x);render();window.scrollTo({top:0,behavior:'smooth'});break}
+ case 'exDel':if(confirm('Delete this expense and its receipt?')){S.expenses=S.expenses.filter(e=>e.id!==id);tomb(id);delete RC[id];saveRC(id);if(editingExp===id){editingExp=null;draft=newDraft();draftData=null}save();render()}break;
+ case 'csv':exportCSV();break;
+ // checklist
+ case 'addEvent':{const i=$('#newEvent'),n=(i&&i.value||'').trim();if(!n){i&&i.focus();return}
+  const ev={id:uid(),name:n,date:'',venue:'',ord:Math.max(-1,...S.events.map(e=>e.ord??0))+1,c:Date.now(),tasks:[]};touch(ev);S.events.push(ev);
+  S.guests.forEach(g=>{if(g.events&&g.events.length===S.events.length-1){g.events.push(ev.id);touch(g)}});save();render();break}
+ case 'toggleEvent':COL.has(id)?COL.delete(id):COL.add(id);LS.set('collapsed',[...COL]);render();break;
+ case 'expandAll':COL.clear();LS.set('collapsed',[]);render();break;
+ case 'collapseAll':S.events.forEach(e=>COL.add(e.id));LS.set('collapsed',[...COL]);render();break;
+ case 'evUp':moveEvent(id,-1);break;
+ case 'evDown':moveEvent(id,1);break;
+ case 'evDel':{const ev=S.events.find(x=>x.id===id);if(confirm(`Delete "${ev.name}" and its ${ev.tasks.length} task(s)? Expenses linked to it will become "General".`)){
+  S.events=S.events.filter(x=>x.id!==id);tomb(id);ev.tasks.forEach(t=>tomb(t.id));S.expenses.forEach(x=>{if(x.eventId===id){x.eventId='';touch(x)}});save();render()}break}
+ case 'suggest':{const ev=S.events.find(x=>x.id===id);const key=Object.keys(SUGGESTED).find(k=>k.toLowerCase()===ev.name.trim().toLowerCase());
+  const list=(key?SUGGESTED[key]:GENERIC_SUGG).filter(t=>!ev.tasks.some(x=>x.title.toLowerCase()===t.toLowerCase()));
+  if(!list.length){alert('All suggested tasks are already on this list.');return}
+  list.forEach((t,k)=>{const nt=newTask(t);nt.c+=k;ev.tasks.push(nt)});COL.delete(id);LS.set('collapsed',[...COL]);save();render();break}
+ case 'addTask':addTask(id);break;
+ case 'toggleTask':{const t=findItem('tasks',id,el.dataset.ev);t.status=t.status==='Complete'?'Pending':'Complete';touch(t);save();render();break}
+ case 'taskDel':{const ev=S.events.find(x=>x.id===el.dataset.ev);ev.tasks=ev.tasks.filter(t=>t.id!==id);tomb(id);save();render();break}
+ // vendors / guests
+ case 'addVendor':{const v={id:uid(),name:'',service:'',eventId:'',phone:'',email:'',total:'',deposit:'',due:'',status:'Pending',notes:'',c:Date.now()};touch(v);S.vendors.push(v);save();render();const n=document.querySelector(`[data-key="vendors||${v.id}|name"]`);n&&n.focus();break}
+ case 'vDel':if(confirm('Delete this vendor?')){S.vendors=S.vendors.filter(v=>v.id!==id);tomb(id);save();render()}break;
+ case 'addGuest':{const g={id:uid(),name:'',side:'',party:1,phone:'',events:S.events.map(e=>e.id),rsvp:'Pending',notes:'',c:Date.now()};touch(g);S.guests.push(g);F.gq='';save();render();const n=document.querySelector(`[data-key="guests||${g.id}|name"]`);n&&n.focus();break}
+ case 'gDel':if(confirm('Remove this guest?')){S.guests=S.guests.filter(g=>g.id!==id);tomb(id);save();render()}break;
+ case 'guestEv':{const g=S.guests.find(x=>x.id===id);g.events=g.events||[];const k=el.dataset.ev;g.events=g.events.includes(k)?g.events.filter(x=>x!==k):[...g.events,k];touch(g);save();render();break}
+ // settings
+ case 'addPerson':{const i=$('#newPerson');addPerson(i&&i.value);save();render();const n=$('#newPerson');n&&n.focus();break}
+ case 'rmPerson':S.people=S.people.filter(p=>p.id!==id);tomb(id);save();render();break;
+ case 'addCat':{const c={id:uid(),name:'New category',budget:0,c:Date.now()};touch(c);S.categories.push(c);save();render();break}
+ case 'catDel':{const c=S.categories.find(x=>x.id===id);const n=S.expenses.filter(e=>e.category===c.name).length;if(confirm(`Delete category "${c.name}"?${n?` ${n} expense(s) will show as uncategorized.`:''}`)){S.categories=S.categories.filter(x=>x.id!==id);tomb(id);save();render()}break}
+ case 'backup':{const rc={};S.expenses.forEach(e=>{const d=rcData(e);if(d)rc[e.id]={rv:e.receipt.rv,data:d}});
+  download(`wedding-planner-backup-${todayISO()}.json`,JSON.stringify({...S,_receipts:rc}),'application/json');LS.set('lastBackup',Date.now());render();break}
+ case 'snooze':LS.set('snooze',Date.now()+864e5);renderBackupBar();break;
+ case 'restore':{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=async()=>{try{const d=JSON.parse(await i.files[0].text());if(!d.events&&!d.expenses)throw 0;
+   if(confirm('Load the data from this backup? It will be merged with what is here (the most recent version of each item is kept).')){
+    const rc=d._receipts||{};delete d._receipts;const B=normalize(d);
+    for(const k in rc){RC[k]=rc[k];await saveRC(k)}for(const k of migratedRC.splice(0))await saveRC(k);
+    S=S.pristine?B:mergeState(S,B);save();render();alert('Backup loaded.')}}catch(e){alert('That file doesn\'t look like a planner backup.')}};i.click();break}
+ case 'reset':if(confirm('Erase all planner data on THIS device? (If shared sync is on, this device is also disconnected — the shared copy on GitHub is not touched.)')&&confirm('Are you sure? Download a backup first if you might need it.')){
+  resetDevice();render()}break;
+ // passcode
+ case 'pcSet':setPasscode();break;
+ case 'pcRemove':removePasscode();break;
+ case 'lockNow':if(!LS.get('pclock',null))return;PC.code=null;storeCode(null);showLock('local','The planner is locked. Enter the family passcode to continue.');break;
+ // sync
+ case 'ghConnect':readGhForm();if(!ghReady()){alert('Fill in the owner, repository and access token.');return}repoOk=false;lastErr='';setSync('⟳ Connecting…');sync().then(()=>render());break;
+ case 'syncNow':if(tab==='settings'&&$('#gh_owner'))readGhForm();if(ghReady()){repoOk=false;sync().then(()=>{if(tab==='settings')render()})}else{tab='settings';render();$('#syncCard')&&$('#syncCard').scrollIntoView({behavior:'smooth'})}break;
+ case 'ghDisconnect':if(confirm('Disconnect this device from shared sync? Your data stays on this device; the token is removed.')){GH.token='';LS.set('gh',GH);lastErr='';setSync('');render()}break;
+ case 'ghLink':{readGhForm();if(!GH.owner||!GH.repo){alert('Fill in the owner and repository first.');return}
+  const cfg={owner:GH.owner,repo:GH.repo,branch:GH.branch,path:GH.path,rdir:GH.rdir};const url=location.href.split('#')[0]+'#sync='+encodeURIComponent(JSON.stringify(cfg));
+  (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>alert('Setup link copied. Send it to family — they open it, paste their access token, and click Connect.\n\nThe link does NOT include your token.'),()=>prompt('Copy this setup link:',url));break}
+ }}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;
+ if(el.tagName==='A')e.preventDefault();
+ if(el.dataset.act==='pick'&&e.target.closest('[data-act="rmDraftReceipt"]'))return;
+ e.stopPropagation();act(el.dataset.act,el)});
+
+/* drag & drop */
+document.addEventListener('dragover',e=>{e.preventDefault();const z=e.target.closest('[data-drop]');
+ document.querySelectorAll('.over').forEach(x=>{if(x!==z)x.classList.remove('over')});
+ if(z){z.classList.add('over');e.dataTransfer.dropEffect='copy'}else e.dataTransfer.dropEffect=tab==='expenses'?'copy':'none'});
+document.addEventListener('dragleave',e=>{const z=e.target.closest('[data-drop]');if(z&&!z.contains(e.relatedTarget))z.classList.remove('over')});
+document.addEventListener('drop',e=>{e.preventDefault();document.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));
+ const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(!f)return;const z=e.target.closest('[data-drop]');
+ if(z)attach(z.dataset.drop,f);else if(tab==='expenses')attach('draft',f)});
+
+/* ================= init ================= */
+(async()=>{
+ if(!LS.get('firstUse',0))LS.set('firstUse',Date.now());
+ S=normalize(await load());
+ for(const k of migratedRC.splice(0))await saveRC(k);
+ if(location.hash.startsWith('#sync=')){try{const cfg=JSON.parse(decodeURIComponent(location.hash.slice(6)));['owner','repo','branch','path','rdir'].forEach(k=>{if(cfg[k])GH[k]=String(cfg[k])});LS.set('gh',GH);tab='settings'}catch(e){}
+  history.replaceState(null,'',location.pathname+location.search)}
+ loadCode();
+ if(LS.get('pclock',null)&&!(PC.code&&await verifyLocal(PC.code))){PC.code=null;showLock('local');return}
+ start();
+})();
+async function start(){
+ started=true;render();
+ if(tab==='settings'&&!ghReady())setTimeout(()=>{const t=$('#gh_token');if(t){$('#syncCard').scrollIntoView({behavior:'smooth'});t.focus()}},100);
+ setSaveInd(storageMode==='memory'?'⚠ Not saved in this browser — use Backup':'✓ Saved on this device');
+ await requestPersist();
+ if(ghReady()){setSync('⟳ Syncing…');sync()}
+}
+</script>
+</body>
+</html>
