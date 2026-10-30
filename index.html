@@ -463,8 +463,14 @@ async function sync(){
   setSync('⚠ Sync problem','err');if(tab==='settings')safeRender()}
  finally{syncing=false;if(syncAgain){syncAgain=false;scheduleSync(800)}}}
 const isEditing=()=>{const a=document.activeElement;return a&&$('#view').contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)};
-function safeRender(){if(isEditing()){needRender=true}else render()}
-document.addEventListener('focusout',()=>setTimeout(()=>{if(needRender&&!isEditing()){needRender=false;render()}},60));
+/* never redraw while a mouse button / finger is down, or the click would land on a replaced element */
+let pointerDown=false,afterPointer=[];
+document.addEventListener('pointerdown',()=>{pointerDown=true},true);
+const releasePointer=()=>{if(!pointerDown)return;pointerDown=false;const q=afterPointer;afterPointer=[];setTimeout(()=>q.forEach(f=>f()),30)};
+document.addEventListener('pointerup',releasePointer,true);document.addEventListener('pointercancel',releasePointer,true);
+function whenFree(fn){if(pointerDown)afterPointer.push(fn);else fn()}
+function safeRender(){if(isEditing()||pointerDown){needRender=true;if(pointerDown)afterPointer.push(()=>{if(needRender&&!isEditing()){needRender=false;render()}})}else render()}
+document.addEventListener('focusout',()=>setTimeout(()=>whenFree(()=>{if(needRender&&!isEditing()){needRender=false;render()}}),60));
 setInterval(()=>{if(document.visibilityState==='visible'&&ghReady())sync()},60000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ghReady())scheduleSync(300)});
 
@@ -494,9 +500,9 @@ function render(){
  renderBackupBar();
  $('#lockBtn').style.display=LS.get('pclock',null)?'':'none';
 }
-function rerenderSoon(){setTimeout(()=>{const a=document.activeElement;const key=a&&a.dataset?a.dataset.key:null;
+function rerenderSoon(){setTimeout(()=>whenFree(()=>{const a=document.activeElement;const key=a&&a.dataset?a.dataset.key:null;
  let pos=null;try{pos=a.selectionStart}catch(e){}
- render();if(key){const n=document.querySelector(`[data-key="${CSS.escape(key)}"]`);if(n){n.focus();try{if(pos!=null&&n.setSelectionRange)n.setSelectionRange(pos,pos)}catch(e){}}}},0)}
+ render();if(key){const n=document.querySelector(`[data-key="${CSS.escape(key)}"]`);if(n){n.focus();try{if(pos!=null&&n.setSelectionRange)n.setSelectionRange(pos,pos)}catch(e){}}}}),0)}
 function hasData(){return S.expenses.length||S.vendors.length||S.guests.length||S.events.some(e=>e.tasks.length)}
 function renderBackupBar(){
  const bar=$('#bakBar');const last=Math.max(LS.get('lastBackup',0),LS.get('firstUse',Date.now()),ghReady()&&!lastErr?lastSync:0);
@@ -664,7 +670,7 @@ function rCheck(){
     <td style="min-width:150px">${fld({col:'tasks',ev:ev.id,id:t.id,f:'notes',val:t.notes,ph:'Notes'})}</td>
     <td><button class="btn sm ghost danger noprint" data-act="taskDel" data-ev="${ev.id}" data-id="${t.id}" title="Delete task">✕</button></td></tr>`}).join('')}
    </tbody></table></div>`:`<div class="empty small">${n?'No tasks match the current filter.':'No tasks yet — add one below or click ✨ Suggested.'}</div>`;
-   h+=`<div class="toolbar noprint" style="margin:10px 0 0"><input data-newtask="${ev.id}" placeholder="Add a task to ${esc(ev.name)} and press Enter" style="flex:1;min-width:220px"><input data-newassign="${ev.id}" list="peopleList" placeholder="Assign to" style="width:150px"><button class="btn" data-act="addTask" data-id="${ev.id}">＋ Add task</button></div>`;
+   h+=`<div class="toolbar noprint" style="margin:10px 0 0"><input data-newtask="${ev.id}" data-key="nt|${ev.id}" value="${esc(NT['t'+ev.id]||'')}" placeholder="Add a task to ${esc(ev.name)} and press Enter" style="flex:1;min-width:220px"><input data-newassign="${ev.id}" data-key="na|${ev.id}" value="${esc(NT['a'+ev.id]||'')}" list="peopleList" placeholder="Assign to" style="width:150px"><button class="btn" data-act="addTask" data-id="${ev.id}">＋ Add task</button></div>`;
   }
   h+=`</div>`;
  });
@@ -919,8 +925,11 @@ document.addEventListener('change',e=>{
  if(el.dataset.d){draft[el.dataset.d]=el.value;if(el.dataset.d==='status'&&el.value==='Paid'&&!draft.datePaid){draft.datePaid=todayISO();render()}return}
  if(el.dataset.flt){F[el.dataset.flt]=el.value;rerenderSoon()}
 });
+const NT={};   // unsent text in the "add a task" boxes, kept across redraws
 document.addEventListener('input',e=>{const el=e.target;
- if(el.dataset.d)draft[el.dataset.d]=el.value;
+ if(el.dataset.newtask!==undefined)NT['t'+el.dataset.newtask]=el.value;
+ else if(el.dataset.newassign!==undefined)NT['a'+el.dataset.newassign]=el.value;
+ else if(el.dataset.d)draft[el.dataset.d]=el.value;
  else if(el.dataset.flt&&el.tagName==='INPUT'){F[el.dataset.flt]=el.value;rerenderSoon()}});
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'){act('closeModal');act('closePdf');return}
@@ -937,7 +946,7 @@ function addTask(evId){const ev=S.events.find(x=>x.id===evId);if(!ev)return;
  const ti=document.querySelector(`[data-newtask="${evId}"]`),ai=document.querySelector(`[data-newassign="${evId}"]`);
  const title=(ti&&ti.value||'').trim();if(!title){ti&&ti.focus();return}
  const who=(ai&&ai.value||'').trim();addPerson(who);
- ev.tasks.push(newTask(title,who));save();render();
+ ev.tasks.push(newTask(title,who));delete NT['t'+evId];delete NT['a'+evId];save();render();
  const n=document.querySelector(`[data-newtask="${evId}"]`);if(n)n.focus()}
 function moveEvent(id,d){const i=S.events.findIndex(e=>e.id===id),j=i+d;if(i<0||j<0||j>=S.events.length)return;
  S.events.forEach((e,k)=>{if(e.ord!==k){e.ord=k;touch(e)}});
